@@ -398,6 +398,7 @@ export interface TreeNodeItemProps {
     showProjectCard?: boolean; // True for level 0 in Hierarchy view
     canManageStrategy: boolean; // Whether user can add/edit/delete items
     showFilteredProgress?: boolean; // Whether to show filtered progress calculation
+    hideProgress?: boolean; // NEW: Hide progress bars and percentages
 }
 
 export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
@@ -409,6 +410,7 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
     expandSignal,
     zoomClass,
     hideDescription,
+    hideProgress = false,
     onAdd,
     onEdit,
     onDelete,
@@ -452,22 +454,24 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                                 )}
                             </div>
                             <p className={hierarchyStyles.projectCard.description(hideDescription)}>{item.description}</p>
-                            <div className={hierarchyStyles.projectCard.progressWrapper}>
-                                <div className={hierarchyStyles.projectCard.progressBg}>
-                                    <div 
-                                        className={hierarchyStyles.projectCard.progressFill(actualProgress)}
-                                        style={{ width: `${actualProgress}%` }} 
-                                    />
+                            {!hideProgress && (
+                                <div className={hierarchyStyles.projectCard.progressWrapper}>
+                                    <div className={hierarchyStyles.projectCard.progressBg}>
+                                        <div 
+                                            className={hierarchyStyles.projectCard.progressFill(actualProgress)}
+                                            style={{ width: `${actualProgress}%` }} 
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={hierarchyStyles.projectCard.progressText}>{actualProgress}%</span>
+                                        {showFilteredProgress && filteredProgress !== null && filteredProgress !== actualProgress && (
+                                            <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded" title="Progress based on current filter">
+                                                Filtered: {filteredProgress}%
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className={hierarchyStyles.projectCard.progressText}>{actualProgress}%</span>
-                                    {showFilteredProgress && filteredProgress !== null && filteredProgress !== actualProgress && (
-                                        <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded" title="Progress based on current filter">
-                                            Filtered: {filteredProgress}%
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                     <div className={hierarchyStyles.projectCard.actions}>
@@ -523,6 +527,7 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                                 expandSignal={expandSignal}
                                 zoomClass={zoomClass}
                                 hideDescription={hideDescription}
+                                hideProgress={hideProgress}
                                 onAdd={onAdd}
                                 onEdit={onEdit} 
                                 onDelete={onDelete} 
@@ -605,29 +610,31 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                                 </div>
                             )}
 
-                            <div className={hierarchyStyles.node.progressRow}>
-                                <div className={hierarchyStyles.node.progressBarBg}>
-                                    <div 
-                                        className={hierarchyStyles.node.progressBarFill(actualProgress)}
-                                        style={{ width: `${actualProgress}%` }} 
-                                    />
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-400 font-medium ml-2">{actualProgress}%</span>
-                                    {showFilteredProgress && filteredProgress !== null && filteredProgress !== actualProgress && (
-                                        <span className="text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded" title="Progress based on current filter">
-                                            Filtered: {filteredProgress}%
-                                        </span>
+                            {!hideProgress && (
+                                <div className={hierarchyStyles.node.progressRow}>
+                                    <div className={hierarchyStyles.node.progressBarBg}>
+                                        <div 
+                                            className={hierarchyStyles.node.progressBarFill(actualProgress)}
+                                            style={{ width: `${actualProgress}%` }} 
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-400 font-medium ml-2">{actualProgress}%</span>
+                                        {showFilteredProgress && filteredProgress !== null && filteredProgress !== actualProgress && (
+                                            <span className="text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded" title="Progress based on current filter">
+                                                Filtered: {filteredProgress}%
+                                            </span>
+                                        )}
+                                    </div>
+                                    {item.type === 'KeyResult' && (
+                                        <div className="flex items-center gap-2">
+                                            <span className={hierarchyStyles.node.metricText}>
+                                                • {item.metricCurrent} / {item.metricTarget} {item.unit}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
-                                {item.type === 'KeyResult' && (
-                                    <div className="flex items-center gap-2">
-                                        <span className={hierarchyStyles.node.metricText}>
-                                            • {item.metricCurrent} / {item.metricTarget} {item.unit}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
                             
@@ -688,6 +695,7 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                                     expandSignal={expandSignal}
                                     zoomClass={zoomClass}
                                     hideDescription={hideDescription}
+                                    hideProgress={hideProgress}
                                     onAdd={onAdd}
                                     onEdit={onEdit} 
                                     onDelete={onDelete} 

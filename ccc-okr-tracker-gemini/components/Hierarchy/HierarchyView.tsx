@@ -19,6 +19,7 @@ interface FilterState {
     filterQuarterYears: string[]; // e.g., ["Q1 2025", "Q4 2025", "Q1 2026"] - Empty array = show all
     filterStatus: string;
     hideDescription: boolean;
+    hideProgress: boolean; // NEW: Hide progress bars and percentages
     filterInitiativeId: number | 'ALL';
 }
 
@@ -176,6 +177,7 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
         filterQuarterYears: [], // Empty array = show all
         filterStatus: 'ALL',
         hideDescription: false,
+        hideProgress: false, // NEW: Hide progress toggle
         filterInitiativeId: 'ALL',
     });
 
@@ -549,6 +551,16 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
                   <EyeOff className="w-4 h-4 mr-1"/> 
                   {filters.hideDescription ? 'Descriptions Hidden' : 'Hide Descriptions'}
               </button>
+              
+              {/* Hide Progress Toggle */}
+              <button 
+                  onClick={() => handleFilterChange('hideProgress', !filters.hideProgress)}
+                  className={styles.filterBar.toggleBtn(filters.hideProgress)}
+                  title={filters.hideProgress ? 'Show Progress' : 'Hide Progress'}
+              >
+                  <EyeOff className="w-4 h-4 mr-1"/> 
+                  {filters.hideProgress ? 'Progress Hidden' : 'Hide Progress'}
+              </button>
           </div>
 
           <div className={styles.list.wrapper}>
@@ -562,6 +574,7 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
                     expandSignal={expandSignal}
                     zoomClass={zoomClass}
                     hideDescription={filters.hideDescription}
+                    hideProgress={filters.hideProgress}
                     onAdd={openAddDialog}
                     onEdit={openEditDialog}
                     onDelete={handleDelete}

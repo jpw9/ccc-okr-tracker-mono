@@ -42,6 +42,7 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
     const [allUsers, setAllUsers] = useState<User[]>([]); 
     const [zoomLevel, setZoomLevel] = useState<'small' | 'medium' | 'large'>('medium');
     const [hideDescription, setHideDescription] = useState(false);
+    const [hideProgress, setHideProgress] = useState(false); // NEW: Hide progress toggle
     const [expandSignal, setExpandSignal] = useState(0);
     const [quarterYearDropdownOpen, setQuarterYearDropdownOpen] = useState(false);
     
@@ -341,6 +342,16 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                     <EyeOff className="w-4 h-4 mr-1"/> 
                     {hideDescription ? 'Descriptions Hidden' : 'Hide Descriptions'}
                 </button>
+                
+                {/* Hide Progress Toggle */}
+                <button 
+                    onClick={() => setHideProgress(!hideProgress)}
+                    className={hierarchyStyles.filterBar.toggleBtn(hideProgress)}
+                    title={hideProgress ? 'Show Progress' : 'Hide Progress'}
+                >
+                    <EyeOff className="w-4 h-4 mr-1"/> 
+                    {hideProgress ? 'Progress Hidden' : 'Hide Progress'}
+                </button>
             </div>
 
             <div className={hierarchyStyles.list.wrapper}>
@@ -355,6 +366,7 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                             expandSignal={expandSignal}
                             zoomClass={zoomClass}
                             hideDescription={hideDescription}
+                            hideProgress={hideProgress}
                             onAdd={openAddDialog}
                             onEdit={openEditDialog}
                             onDelete={handleDelete}

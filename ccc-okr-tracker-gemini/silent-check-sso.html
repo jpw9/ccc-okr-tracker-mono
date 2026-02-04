@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Silent Check SSO</title>
+</head>
+<body>
+    <script>
+        // This script is required by Keycloak to perform silent token renewal in an iframe.
+        if (typeof parent !== 'undefined' && parent) {
+            var event = new CustomEvent('keycloak-silent-sso-check', { detail: window.location.hash });
+            parent.document.dispatchEvent(event);
+        }
+    </script>
+</body>
+</html>

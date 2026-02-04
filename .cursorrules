@@ -1,0 +1,12 @@
+# OKR Tracker Technical Stack
+- **Backend**: Spring Boot 4.0 (Java 17), Maven, PostgreSQL.
+- **Frontend**: React 19 (Vite), Tailwind CSS 4, Lucide Icons.
+- **Architecture**:
+  - Backend uses Controller-Service-Repository pattern.
+  - Frontend uses `dataService.ts` as the single point for API communication.
+  - Security is handled via Keycloak/OAuth2 Resource Server.
+
+# Cross-Project Rules
+1. **Sync Entities**: When modifying a Java Entity (e.g., `Goal.java`), you MUST update the corresponding interface in `types.ts`.
+2. **Numeric Safety**: Frontend `dataService.ts` must use `preparePayload` to ensure numeric types are correctly cast before sending to Java.
+3. **Verification**: After every change, run `./mvnw test` in the backend folder and `npm run build` in the frontend folder.

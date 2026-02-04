@@ -170,7 +170,14 @@ export const KeycloakProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     appUser, 
     permissions, 
     loading,
-    logout: () => kc.logout({ redirectUri: window.location.origin }),
+    logout: () => {
+      const baseUrl = window.location.origin;
+      const pathname = window.location.pathname;
+      // Extract the context path (e.g., /cccokrtracker)
+      const contextPath = pathname.split('/')[1];
+      const redirectUri = contextPath ? `${baseUrl}/${contextPath}/` : `${baseUrl}/`;
+      kc.logout({ redirectUri });
+    },
     login: () => kc.login(),
     refreshAppUser, 
   }), [isAuthenticated, userProfile, appUser, permissions, loading, kc, refreshAppUser, userRefreshSignal]); // CRITICAL FIX: Add userRefreshSignal dependency here to force context re-render

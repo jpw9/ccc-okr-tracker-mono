@@ -12,8 +12,7 @@ $SERVER = "10.1.155.28"
 $USER = "gitlab1"
 $BACKEND_WAR = "build-output\okr-tracker-backend.war"
 $FRONTEND_WAR = "build-output\okr-tracker-ui.war"
-$REMOTE_BACKEND_PATH = "/opt/apache-tomcat-10.1.18/webapps"
-$REMOTE_FRONTEND_PATH = "/opt/tomcat9/webapps"
+$TOMCAT_WEBAPPS = "/opt/apache-tomcat-10.1.18/webapps"
 
 # Colors for output
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
@@ -55,20 +54,20 @@ if (-not $FrontendOnly) {
     
     Write-Host "   Stopping Tomcat 10, moving WAR, starting Tomcat 10..." -ForegroundColor Gray
     Write-Host "   (You will be prompted for sudo password)" -ForegroundColor DarkGray
-    ssh -t "${USER}@${SERVER}" "sudo systemctl stop tomcat10 && sudo rm -rf $REMOTE_BACKEND_PATH/okr-tracker-backend && sudo mv /tmp/okr-tracker-backend.war $REMOTE_BACKEND_PATH/ && sudo chown tomcat:tomcat $REMOTE_BACKEND_PATH/okr-tracker-backend.war && sudo systemctl start tomcat10"
+    ssh -t "${USER}@${SERVER}" "sudo systemctl stop tomcat10 && sudo rm -rf $TOMCAT_WEBAPPS/okr-tracker-backend && sudo mv /tmp/okr-tracker-backend.war $TOMCAT_WEBAPPS/ && sudo chown tomcat:tomcat $TOMCAT_WEBAPPS/okr-tracker-backend.war && sudo systemctl start tomcat10"
     
     Write-Success "Backend deployed!"
 }
 
-# Step 3: Deploy Frontend (no password needed)
+# Step 3: Deploy Frontend (requires sudo - same Tomcat 10)
 if (-not $BackendOnly) {
     Write-Step "Deploying Frontend..."
     
     Write-Host "   Uploading frontend WAR..." -ForegroundColor Gray
     scp $FRONTEND_WAR "${USER}@${SERVER}:/tmp/cccokrtracker.war"
     
-    Write-Host "   Replacing frontend WAR (hot deploy)..." -ForegroundColor Gray
-    ssh "${USER}@${SERVER}" "rm -rf $REMOTE_FRONTEND_PATH/cccokrtracker && mv /tmp/cccokrtracker.war $REMOTE_FRONTEND_PATH/"
+    Write-Host "   Deploying frontend to Tomcat 10..." -ForegroundColor Gray
+    ssh -t "${USER}@${SERVER}" "sudo rm -rf $TOMCAT_WEBAPPS/cccokrtracker && sudo mv /tmp/cccokrtracker.war $TOMCAT_WEBAPPS/ && sudo chown tomcat:tomcat $TOMCAT_WEBAPPS/cccokrtracker.war"
     
     Write-Success "Frontend deployed!"
 }
@@ -76,6 +75,5 @@ if (-not $BackendOnly) {
 Write-Host "`n============================================" -ForegroundColor Green
 Write-Host "   Deployment Complete!" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
-Write-Host "`nURLs:"
-Write-Host "   Frontend: http://${SERVER}:8080/cccokrtracker/"
-Write-Host "   Backend:  http://${SERVER}:8090/okr-tracker-backend/api"
+Write-Host "`nURL: http://${SERVER}:8090/cccokrtracker/"
+Write-Host "API: http://${SERVER}:8090/okr-tracker-backend/api"

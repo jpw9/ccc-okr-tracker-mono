@@ -97,12 +97,12 @@ The application uses **Keycloak** for authentication:
 
 ## 🌐 Production Deployment
 
-**Server**: 10.1.155.28
+**Server**: 10.1.155.28 (Tomcat 10, port 8090)
 
-| Component | URL | Server |
-|-----------|-----|--------|
-| Frontend | http://10.1.155.28:8080/cccokrtracker/ | Tomcat 9 |
-| Backend | http://10.1.155.28:8090/okr-tracker-backend/ | Tomcat 10 |
+| Component | URL |
+|-----------|-----|
+| Frontend | http://10.1.155.28:8090/cccokrtracker/ |
+| Backend | http://10.1.155.28:8090/okr-tracker-backend/ |
 
 Build and deploy:
 ```bash

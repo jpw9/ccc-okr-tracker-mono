@@ -165,8 +165,8 @@ Key settings:
 | Client ID | frontend |
 | Client Protocol | openid-connect |
 | Access Type | public |
-| Valid Redirect URIs | http://localhost:4200/*, http://10.1.155.28:8080/* |
-| Web Origins | http://localhost:4200, http://10.1.155.28:8080 |
+| Valid Redirect URIs | http://localhost:4200/*, http://10.1.155.28:8090/* |
+| Web Origins | http://localhost:4200, http://10.1.155.28:8090 |
 
 ### Token Configuration
 
@@ -225,7 +225,7 @@ public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(List.of(
         "http://localhost:4200",           // Local dev
-        "http://10.1.155.28:8080",         // Production frontend
+        "http://10.1.155.28:8090",         // Production frontend
         "http://10.1.155.28"               // Production base
     ));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

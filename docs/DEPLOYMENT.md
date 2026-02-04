@@ -2,11 +2,11 @@
 
 ## Overview
 
-The OKR Tracker is deployed as two separate WAR files:
-- **Backend**: Spring Boot 3 WAR on **Tomcat 10** (port 8090)
-- **Frontend**: Static React build on **Tomcat 9** (port 8080)
+The OKR Tracker is deployed as two separate WAR files on **Tomcat 10** (port 8090):
+- **Backend**: Spring Boot 3 WAR (`okr-tracker-backend.war`)
+- **Frontend**: Static React build as WAR (`cccokrtracker.war`)
 
-> **Important**: Spring Boot 3 requires Jakarta EE (Tomcat 10+). Tomcat 9 only supports javax namespace.
+> **Note**: Spring Boot 3 requires Jakarta EE (Tomcat 10+). Both applications run on the same Tomcat instance.
 
 ---
 
@@ -15,8 +15,7 @@ The OKR Tracker is deployed as two separate WAR files:
 ### Production Server (10.1.155.28)
 
 - Java 17 installed
-- Tomcat 10 (backend) - `/opt/tomcat10`
-- Tomcat 9 (frontend) - `/opt/tomcat9`
+- Tomcat 10 - `/opt/apache-tomcat-10.1.18` (port 8090)
 - PostgreSQL access to `postgres.ccc.net:5432`
 - Network access to Keycloak at `auth.ccc.net`
 
@@ -96,31 +95,28 @@ sudo tail -f /opt/tomcat10/logs/catalina.out
 
 **Verify:** `http://10.1.155.28:8090/okr-tracker-backend/api/hierarchy/projects`
 
-### 3. Deploy Frontend (Tomcat 9)
+### 3. Deploy Frontend (Tomcat 10)
 
 ```bash
-# On production server
-sudo systemctl stop tomcat9
+# On production server (WAR auto-deploys, no restart needed)
+sudo cp /tmp/okr-tracker-ui.war /opt/apache-tomcat-10.1.18/webapps/cccokrtracker.war
 
-# Copy WAR
-sudo cp /tmp/okr-tracker-ui.war /opt/tomcat9/webapps/cccokrtracker.war
-
-# Start Tomcat
-sudo systemctl start tomcat9
+# Or if you need to restart
+sudo systemctl restart tomcat10
 
 # Check logs
-sudo tail -f /opt/tomcat9/logs/catalina.out
+sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
 ```
 
-**Verify:** `http://10.1.155.28:8080/cccokrtracker/`
+**Verify:** `http://10.1.155.28:8090/cccokrtracker/`
 
 ---
 
 ## Tomcat Configuration
 
-### Backend (Tomcat 10)
+### Tomcat 10 (`/opt/apache-tomcat-10.1.18`)
 
-**`/opt/tomcat10/conf/server.xml`:**
+**`/opt/apache-tomcat-10.1.18/conf/server.xml`:**
 ```xml
 <Connector port="8090" protocol="HTTP/1.1"
            connectionTimeout="20000"
@@ -128,7 +124,7 @@ sudo tail -f /opt/tomcat9/logs/catalina.out
            maxParameterCount="1000" />
 ```
 
-**`/opt/tomcat10/conf/application-prod.properties`:**
+**`/opt/apache-tomcat-10.1.18/conf/application-prod.properties`:**
 ```properties
 spring.profiles.active=prod
 spring.datasource.url=jdbc:postgresql://postgres.ccc.net:5432/ccc_okr_db
@@ -136,16 +132,6 @@ spring.datasource.username=okruser
 spring.datasource.password=<password>
 server.servlet.context-path=/okr-tracker-backend
 spring.security.oauth2.resourceserver.jwt.issuer-uri=https://auth.ccc.net/auth/realms/Apps
-```
-
-### Frontend (Tomcat 9)
-
-**`/opt/tomcat9/conf/server.xml`:**
-```xml
-<Connector port="8080" protocol="HTTP/1.1"
-           connectionTimeout="20000"
-           redirectPort="8443"
-           maxParameterCount="1000" />
 ```
 
 ---
@@ -185,7 +171,7 @@ curl http://10.1.155.28:8090/okr-tracker-backend/actuator/health
 ### Frontend Availability
 
 ```bash
-curl -I http://10.1.155.28:8080/cccokrtracker/
+curl -I http://10.1.155.28:8090/cccokrtracker/
 ```
 
 ---
@@ -196,7 +182,7 @@ curl -I http://10.1.155.28:8080/cccokrtracker/
 
 **Error:** `ClassNotFoundException: jakarta.servlet.ServletException`
 
-**Solution:** Spring Boot 3 requires Tomcat 10+. Upgrade to Tomcat 10.
+**Solution:** Spring Boot 3 requires Tomcat 10+. Use Tomcat 10 only.
 
 ---
 
@@ -207,7 +193,7 @@ curl -I http://10.1.155.28:8080/cccokrtracker/
 **Solution:** Verify `SecurityConfig.java` CORS settings include production origin:
 
 ```java
-.allowedOrigins("http://10.1.155.28:8080")
+.allowedOrigins("http://10.1.155.28:8090")
 ```
 
 ---
@@ -262,21 +248,15 @@ sudo systemctl start tomcat10
 ## Service Management
 
 ```bash
-# Backend (Tomcat 10)
+# Tomcat 10 (both Frontend and Backend)
 sudo systemctl start tomcat10
 sudo systemctl stop tomcat10
 sudo systemctl restart tomcat10
 sudo systemctl status tomcat10
 
-# Frontend (Tomcat 9)
-sudo systemctl start tomcat9
-sudo systemctl stop tomcat9
-sudo systemctl restart tomcat9
-sudo systemctl status tomcat9
-
 # View logs
 sudo journalctl -u tomcat10 -f
-sudo tail -f /opt/tomcat10/logs/catalina.out
+sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
 ```
 
 ---
@@ -285,7 +265,7 @@ sudo tail -f /opt/tomcat10/logs/catalina.out
 
 | Component | URL |
 |-----------|-----|
-| Frontend | http://10.1.155.28:8080/cccokrtracker/ |
+| Frontend | http://10.1.155.28:8090/cccokrtracker/ |
 | Backend API | http://10.1.155.28:8090/okr-tracker-backend/api |
 | Keycloak | https://auth.ccc.net/auth/admin/Apps/console |
 | PostgreSQL | postgres.ccc.net:5432/ccc_okr_db |

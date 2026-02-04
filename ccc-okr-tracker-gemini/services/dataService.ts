@@ -191,8 +191,8 @@ export const updateEntity = async (type: string, id: number, updates: Partial<an
     if (!pathSegment) throw new Error(`Cannot update unknown type: ${type}`);
 
     // Determine if the endpoint is under /admin or /hierarchy
-    let baseUrl = '/hierarchy';
-    if (type === 'User' || type === 'Role') baseUrl = '/admin';
+    let baseUrl = '/api/hierarchy';
+    if (type === 'User' || type === 'Role') baseUrl = '/api/admin';
 
     const payload = preparePayload(type, updates);
 

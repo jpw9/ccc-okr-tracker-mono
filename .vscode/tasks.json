@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend: Start (Dev)",
+      "type": "process",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/ccc-okr-tracker-gemini-backend"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Frontend: Start (Dev)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/ccc-okr-tracker-gemini"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "🚀 Start Dev Environment",
+      "dependsOn": ["Backend: Start (Dev)", "Frontend: Start (Dev)"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build for Tomcat",
+      "type": "shell",
+      "command": ".\\build-for-tomcat.bat",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Backend: Build Only",
+      "type": "shell",
+      "command": ".\\mvnw.cmd clean package -DskipTests",
+      "options": {
+        "cwd": "${workspaceFolder}/ccc-okr-tracker-gemini-backend"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Build Only",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/ccc-okr-tracker-gemini"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Install Dependencies",
+      "type": "shell",
+      "command": "npm install",
+      "options": {
+        "cwd": "${workspaceFolder}/ccc-okr-tracker-gemini"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

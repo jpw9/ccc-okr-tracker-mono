@@ -55,12 +55,18 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Case-insensitive email lookup: Fixed in UserRepository.java
 - All Tomcat 9 references removed - using Tomcat 10 only
 
+## Completed Features
+<!-- Completed features with reference documentation -->
+
+### Mindmap View (Completed: Feb 6, 2026)
+- **Spec:** `docs/features/MINDMAP.md`, `docs/features/MINDMAP_CHANGELOG.md`
+- **Component:** `components/Mindmap/`
+- **Tech Stack:** React Flow (@xyflow/react), TypeScript, Tailwind CSS
+- **Description:** Interactive mindmap visualization of project hierarchy with compact nodes, curved bezier edges, expand/collapse functionality, zoom controls, and color-coded legend
+- **Key components:** MindmapView, MindmapNode, MindmapControls, useMindmap hook, layoutUtils
+- **Features:** Click nodes to expand/collapse, keyboard shortcuts (E/C/F/?), hover tooltips, project selector dropdown
+- **Implementation notes:** Uses simplebezier edges, custom tree layout algorithm, compact 100x28px nodes, 7px font with text truncation
+
 ## Features in Progress
 <!-- Reference feature specs when implementing -->
-
-### Mindmap View
-- **Spec:** `docs/features/MINDMAP.md`
-- **Component:** `components/Mindmap/`
-- **Description:** Interactive mindmap visualization of project hierarchy (NotebookLM-style)
-- **Key behaviors:** Central node, curved connectors, click to expand/collapse, smooth animations, zoom controls
-- **Reference materials:** `docs/features/images/`, `docs/features/videos/`
+<!-- No features currently in active development -->

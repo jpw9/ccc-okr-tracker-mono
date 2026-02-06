@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import HierarchyManager from './components/Hierarchy';
 import MyObjectives from './components/MyObjectives';
+import Mindmap from './components/Mindmap';
 import Settings from './components/Settings';
 import { UserManagement } from './components/Admin/UserManagement';
 import { RoleManagement } from './components/Admin/RoleManagement';
@@ -111,6 +112,8 @@ const ProtectedAppContent: React.FC = () => {
             {...tokenProp}
           />
         );
+      case 'mindmap':
+        return <Mindmap projects={projects} />;
       case 'my-objectives':
         // FIX: Use the application user's login ID (e.g., "admin_user") if available, otherwise fallback to the Keycloak login/email.
         const assignedLogin = appUser?.login || currentUserLogin || '';

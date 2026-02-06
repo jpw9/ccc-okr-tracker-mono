@@ -197,6 +197,13 @@ ccc-okr-tracker-gemini/
     ├── Hierarchy/                 # OKR tree view
     │   ├── HierarchyView.tsx
     │   └── useHierarchy.ts        # Hook for state management
+    ├── Mindmap/                   # Interactive mindmap visualization
+    │   ├── MindmapView.tsx        # Main container with ReactFlow
+    │   ├── MindmapNode.tsx        # Custom node component
+    │   ├── MindmapControls.tsx   # Zoom/pan/expand controls
+    │   ├── useMindmap.ts          # State management hook
+    │   ├── layoutUtils.ts         # Tree layout algorithm
+    │   └── styles.ts              # Tailwind classes
     ├── MyObjectives/              # User's assigned objectives
     ├── Admin/
     │   ├── UserManagement.tsx

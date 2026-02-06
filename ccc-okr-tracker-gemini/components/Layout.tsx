@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { LayoutDashboard, Target, Layers, Settings, LogOut, ChevronRight, Menu as MenuIcon, Search, Filter, Check, Users, Shield, X } from 'lucide-react';
+import { LayoutDashboard, Target, Layers, Settings, LogOut, ChevronRight, Menu as MenuIcon, Search, Filter, Check, Users, Shield, X, Network } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 import { Project, Permission } from '../types';
 import { useAuth } from '../KeycloakProvider';
@@ -99,6 +99,7 @@ const Layout: React.FC<LayoutProps> = ({
             {/* NEW: Conditional rendering based on permission */}
             {can('VIEW_DASHBOARD') && <NavItem id="dashboard" icon={LayoutDashboard} label="Executive Dashboard" />}
             {(can('VIEW_STRATEGY') || can('MANAGE_STRATEGY')) && <NavItem id="projects" icon={Layers} label="Strategy & OKRs" />}
+            {(can('VIEW_STRATEGY') || can('MANAGE_STRATEGY')) && <NavItem id="mindmap" icon={Network} label="Mindmap" />}
           </nav>
 
           {isSidebarOpen && <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-8">Personal</p>}

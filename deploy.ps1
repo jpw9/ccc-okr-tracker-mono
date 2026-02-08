@@ -8,11 +8,11 @@ param(
 )
 
 # Configuration
-$SERVER = "10.1.155.28"
+$SERVER = "10.1.155.29"
 $USER = "gitlab1"
 $BACKEND_WAR = "build-output\okr-tracker-backend.war"
 $FRONTEND_WAR = "build-output\okr-tracker-ui.war"
-$TOMCAT_WEBAPPS = "/opt/apache-tomcat-10.1.18/webapps"
+$TOMCAT_WEBAPPS = "/opt/tomcat10/webapps"
 
 # Colors for output
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
@@ -45,35 +45,28 @@ if (-not $BackendOnly -and -not (Test-Path $FRONTEND_WAR)) {
     exit 1
 }
 
-# Step 2: Deploy Backend (requires sudo password)
+# Step 2: Deploy Backend
 if (-not $FrontendOnly) {
     Write-Step "Deploying Backend..."
     
-    Write-Host "   Uploading backend WAR..." -ForegroundColor Gray
-    scp $BACKEND_WAR "${USER}@${SERVER}:/tmp/okr-tracker-backend.war"
+    Write-Host "   Uploading backend WAR to server..." -ForegroundColor Gray
+    scp $BACKEND_WAR "${USER}@${SERVER}:$TOMCAT_WEBAPPS/okr-tracker-backend.war"
     
-    Write-Host "   Stopping Tomcat 10, moving WAR, starting Tomcat 10..." -ForegroundColor Gray
-    Write-Host "   (You will be prompted for sudo password)" -ForegroundColor DarkGray
-    ssh -t "${USER}@${SERVER}" "sudo systemctl stop tomcat10 && sudo rm -rf $TOMCAT_WEBAPPS/okr-tracker-backend && sudo mv /tmp/okr-tracker-backend.war $TOMCAT_WEBAPPS/ && sudo chown tomcat:tomcat $TOMCAT_WEBAPPS/okr-tracker-backend.war && sudo systemctl start tomcat10"
-    
-    Write-Success "Backend deployed!"
+    Write-Success "Backend deployed! (Tomcat will auto-deploy)"
 }
 
-# Step 3: Deploy Frontend (requires sudo - same Tomcat 10)
+# Step 3: Deploy Frontend
 if (-not $BackendOnly) {
     Write-Step "Deploying Frontend..."
     
-    Write-Host "   Uploading frontend WAR..." -ForegroundColor Gray
-    scp $FRONTEND_WAR "${USER}@${SERVER}:/tmp/cccokrtracker.war"
+    Write-Host "   Uploading frontend WAR to server..." -ForegroundColor Gray
+    scp $FRONTEND_WAR "${USER}@${SERVER}:$TOMCAT_WEBAPPS/cccokrtracker.war"
     
-    Write-Host "   Deploying frontend to Tomcat 10..." -ForegroundColor Gray
-    ssh -t "${USER}@${SERVER}" "sudo rm -rf $TOMCAT_WEBAPPS/cccokrtracker && sudo mv /tmp/cccokrtracker.war $TOMCAT_WEBAPPS/ && sudo chown tomcat:tomcat $TOMCAT_WEBAPPS/cccokrtracker.war"
-    
-    Write-Success "Frontend deployed!"
+    Write-Success "Frontend deployed! (Tomcat will auto-deploy)"
 }
 
 Write-Host "`n============================================" -ForegroundColor Green
 Write-Host "   Deployment Complete!" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
-Write-Host "`nURL: http://${SERVER}:8090/cccokrtracker/"
-Write-Host "API: http://${SERVER}:8090/okr-tracker-backend/api"
+Write-Host "\nURL: https://${SERVER}:8443/cccokrtracker/"
+Write-Host "API: https://${SERVER}:8443/okr-tracker-backend/api"

@@ -12,10 +12,10 @@ The OKR Tracker is deployed as two separate WAR files on **Tomcat 10** (port 809
 
 ## Prerequisites
 
-### Production Server (10.1.155.28)
+### Production Server (10.1.155.29)
 
 - Java 17 installed
-- Tomcat 10 - `/opt/apache-tomcat-10.1.18` (port 8090)
+- Tomcat 10 - `/opt/tomcat10` (port 8090)
 - PostgreSQL access to `postgres.ccc.net:5432`
 - Network access to Keycloak at `auth.ccc.net`
 
@@ -69,8 +69,8 @@ Output: `dist/` folder
 
 ```bash
 # From build machine
-scp build-output/okr-tracker-backend.war admin@10.1.155.28:/tmp/
-scp build-output/okr-tracker-ui.war admin@10.1.155.28:/tmp/
+scp build-output/okr-tracker-backend.war admin@10.1.155.29:/tmp/
+scp build-output/okr-tracker-ui.war admin@10.1.155.29:/tmp/
 ```
 
 ### 2. Deploy Backend (Tomcat 10)
@@ -93,30 +93,30 @@ sudo systemctl start tomcat10
 sudo tail -f /opt/tomcat10/logs/catalina.out
 ```
 
-**Verify:** `http://10.1.155.28:8090/okr-tracker-backend/api/hierarchy/projects`
+**Verify:** `https://10.1.155.29:8443/okr-tracker-backend/api/hierarchy/projects`
 
 ### 3. Deploy Frontend (Tomcat 10)
 
 ```bash
 # On production server (WAR auto-deploys, no restart needed)
-sudo cp /tmp/okr-tracker-ui.war /opt/apache-tomcat-10.1.18/webapps/cccokrtracker.war
+sudo cp /tmp/okr-tracker-ui.war /opt/tomcat10/webapps/cccokrtracker.war
 
 # Or if you need to restart
 sudo systemctl restart tomcat10
 
 # Check logs
-sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
+sudo tail -f /opt/tomcat10/logs/catalina.out
 ```
 
-**Verify:** `http://10.1.155.28:8090/cccokrtracker/`
+**Verify:** `https://10.1.155.29:8443/cccokrtracker/`
 
 ---
 
 ## Tomcat Configuration
 
-### Tomcat 10 (`/opt/apache-tomcat-10.1.18`)
+### Tomcat 10 (`/opt/tomcat10`)
 
-**`/opt/apache-tomcat-10.1.18/conf/server.xml`:**
+**`/opt/tomcat10/conf/server.xml`:**
 ```xml
 <Connector port="8090" protocol="HTTP/1.1"
            connectionTimeout="20000"
@@ -124,7 +124,7 @@ sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
            maxParameterCount="1000" />
 ```
 
-**`/opt/apache-tomcat-10.1.18/conf/application-prod.properties`:**
+**`/opt/tomcat10/conf/application-prod.properties`:**
 ```properties
 spring.profiles.active=prod
 spring.datasource.url=jdbc:postgresql://postgres.ccc.net:5432/ccc_okr_db
@@ -143,7 +143,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=https://auth.ccc.net/auth/r
 Located in frontend folder before build:
 
 ```env
-VITE_API_BASE_URL=http://10.1.155.28:8090/okr-tracker-backend
+VITE_API_BASE_URL=https://10.1.155.29:8443/okr-tracker-backend
 VITE_KEYCLOAK_URL=https://auth.ccc.net/auth
 VITE_KEYCLOAK_REALM=Apps
 VITE_KEYCLOAK_CLIENT_ID=frontend
@@ -165,13 +165,13 @@ Production profile is **default** via `spring.profiles.default=prod`.
 ### Backend Health
 
 ```bash
-curl http://10.1.155.28:8090/okr-tracker-backend/actuator/health
+curl https://10.1.155.29:8443/okr-tracker-backend/actuator/health
 ```
 
 ### Frontend Availability
 
 ```bash
-curl -I http://10.1.155.28:8090/cccokrtracker/
+curl -I https://10.1.155.29:8443/cccokrtracker/
 ```
 
 ---
@@ -193,7 +193,7 @@ curl -I http://10.1.155.28:8090/cccokrtracker/
 **Solution:** Verify `SecurityConfig.java` CORS settings include production origin:
 
 ```java
-.allowedOrigins("http://10.1.155.28:8090")
+.allowedOrigins("https://10.1.155.29:8443")
 ```
 
 ---
@@ -256,7 +256,7 @@ sudo systemctl status tomcat10
 
 # View logs
 sudo journalctl -u tomcat10 -f
-sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
+sudo tail -f /opt/tomcat10/logs/catalina.out
 ```
 
 ---
@@ -265,7 +265,7 @@ sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
 
 | Component | URL |
 |-----------|-----|
-| Frontend | http://10.1.155.28:8090/cccokrtracker/ |
-| Backend API | http://10.1.155.28:8090/okr-tracker-backend/api |
+| Frontend | https://10.1.155.29:8443/cccokrtracker/ |
+| Backend API | https://10.1.155.29:8443/okr-tracker-backend/api |
 | Keycloak | https://auth.ccc.net/auth/admin/Apps/console |
 | PostgreSQL | postgres.ccc.net:5432/ccc_okr_db |

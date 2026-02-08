@@ -15,7 +15,7 @@ All endpoints require JWT authentication via Keycloak.
 
 | Environment | Base URL |
 |-------------|----------|
-| Production | `http://10.1.155.28:8090/okr-tracker-backend/api` |
+| Production | `https://10.1.155.29:8443/okr-tracker-backend/api` |
 | Development | `http://localhost:8080/api` |
 
 ## Authentication

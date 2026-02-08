@@ -31,10 +31,10 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Database changes via Liquibase in `src/main/resources/db/changelog/`
 
 ## Production Environment
-- **Server**: 10.1.155.28 (SSH user: gitlab1)
-- **Tomcat 10**: Port 8090, path `/opt/apache-tomcat-10.1.18`
-- **Frontend URL**: http://10.1.155.28:8090/cccokrtracker/
-- **Backend URL**: http://10.1.155.28:8090/okr-tracker-backend/api
+- **Server**: 10.1.155.29 (SSH user: gitlab1)
+- **Tomcat 10**: Port 8443 (HTTPS), path `/opt/tomcat10`
+- **Frontend URL**: https://10.1.155.29:8443/cccokrtracker/
+- **Backend URL**: https://10.1.155.29:8443/okr-tracker-backend/api
 
 ## Deploy Commands
 ```powershell

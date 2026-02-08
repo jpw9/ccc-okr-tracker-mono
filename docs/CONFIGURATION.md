@@ -114,7 +114,7 @@ Location: `ccc-okr-tracker-gemini/.env.production`
 
 ```env
 # API endpoint (production backend)
-VITE_API_BASE_URL=http://10.1.155.28:8090/okr-tracker-backend
+VITE_API_BASE_URL=https://10.1.155.29:8443/okr-tracker-backend
 
 # Keycloak settings
 VITE_KEYCLOAK_URL=https://auth.ccc.net/auth
@@ -165,8 +165,8 @@ Key settings:
 | Client ID | frontend |
 | Client Protocol | openid-connect |
 | Access Type | public |
-| Valid Redirect URIs | http://localhost:4200/*, http://10.1.155.28:8090/* |
-| Web Origins | http://localhost:4200, http://10.1.155.28:8090 |
+| Valid Redirect URIs | http://localhost:4200/*, https://10.1.155.29:8443/* |
+| Web Origins | http://localhost:4200, https://10.1.155.29:8443 |
 
 ### Token Configuration
 
@@ -225,8 +225,8 @@ public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(List.of(
         "http://localhost:4200",           // Local dev
-        "http://10.1.155.28:8090",         // Production frontend
-        "http://10.1.155.28"               // Production base
+        "https://10.1.155.29:8443",         // Production frontend
+        "http://10.1.155.29"               // Production base
     ));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));

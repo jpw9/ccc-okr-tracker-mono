@@ -248,8 +248,8 @@ Types:
 build-for-tomcat.bat
 
 :: 2. Copy to server
-scp build-output/okr-tracker-backend.war admin@10.1.155.28:/tmp/
-scp build-output/okr-tracker-ui.war admin@10.1.155.28:/tmp/
+scp build-output/okr-tracker-backend.war admin@10.1.155.29:/tmp/
+scp build-output/okr-tracker-ui.war admin@10.1.155.29:/tmp/
 
 :: 3. SSH to server and deploy (see DEPLOYMENT.md)
 ```

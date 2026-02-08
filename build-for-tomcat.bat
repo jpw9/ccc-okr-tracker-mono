@@ -1,12 +1,12 @@
 @echo off
 REM =====================================================
 REM OKR Tracker - Build for Tomcat Deployment
-REM Target Server: 10.1.155.28
+REM Target Server: 10.1.155.29
 REM =====================================================
 
 echo ==========================================
 echo OKR Tracker - Build for Tomcat
-echo Target: 10.1.155.28
+echo Target: 10.1.155.29
 echo ==========================================
 echo.
 
@@ -91,9 +91,9 @@ if not exist .env.production (
     echo Creating .env.production...
     (
         echo # Production Environment Configuration
-        echo # Server: 10.1.155.28
+        echo # Server: 10.1.155.29
         echo.
-        echo VITE_API_BASE_URL=http://10.1.155.28:8090/okr-tracker-backend
+        echo VITE_API_BASE_URL=https://10.1.155.29:8443/okr-tracker-backend
         echo.
         echo # Keycloak Configuration
         echo VITE_KEYCLOAK_URL=https://auth.ccc.net/auth
@@ -172,7 +172,7 @@ echo ==========================================
 echo DEPLOYMENT INSTRUCTIONS
 echo ==========================================
 echo.
-echo To deploy to Tomcat 10 on 10.1.155.28:
+echo To deploy to Tomcat 10 on 10.1.155.29:
 echo.
 echo 1. Stop Tomcat:
 echo    sudo systemctl stop tomcat10
@@ -182,8 +182,8 @@ echo    sudo cp /opt/apache-tomcat-10.1.18/webapps/okr-tracker-backend.war /opt/
 echo    sudo cp /opt/apache-tomcat-10.1.18/webapps/cccokrtracker.war /opt/backups/cccokrtracker.war.%TIMESTAMP%
 echo.
 echo 3. Copy WAR files to server:
-echo    scp %OUTPUT_DIR%\okr-tracker-backend.war user@10.1.155.28:/tmp/
-echo    scp %OUTPUT_DIR%\okr-tracker-ui.war user@10.1.155.28:/tmp/
+echo    scp %OUTPUT_DIR%\okr-tracker-backend.war user@10.1.155.29:/tmp/
+echo    scp %OUTPUT_DIR%\okr-tracker-ui.war user@10.1.155.29:/tmp/
 echo.
 echo 4. Move WAR files to Tomcat webapps:
 echo    sudo mv /tmp/okr-tracker-backend.war /opt/apache-tomcat-10.1.18/webapps/
@@ -197,8 +197,8 @@ echo 6. Monitor logs:
 echo    sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
 echo.
 echo 7. Access application:
-echo    Frontend: http://10.1.155.28:8090/cccokrtracker/
-echo    Backend:  http://10.1.155.28:8090/okr-tracker-backend/
+echo    Frontend: https://10.1.155.29:8443/cccokrtracker/
+echo    Backend:  https://10.1.155.29:8443/okr-tracker-backend/
 echo.
 echo ==========================================
 echo.
@@ -233,8 +233,8 @@ REM Create deployment instructions file
     echo    sudo rm -f /opt/apache-tomcat-10.1.18/webapps/cccokrtracker.war
     echo.
     echo 4. Copy WAR files to server:
-    echo    scp okr-tracker-backend.war user@10.1.155.28:/tmp/
-    echo    scp okr-tracker-ui.war user@10.1.155.28:/tmp/
+    echo    scp okr-tracker-backend.war user@10.1.155.29:/tmp/
+    echo    scp okr-tracker-ui.war user@10.1.155.29:/tmp/
     echo.
     echo 5. Move WAR files to Tomcat:
     echo    sudo mv /tmp/okr-tracker-backend.war /opt/apache-tomcat-10.1.18/webapps/
@@ -248,9 +248,9 @@ REM Create deployment instructions file
     echo    sudo tail -f /opt/apache-tomcat-10.1.18/logs/catalina.out
     echo.
     echo Application URLs:
-    echo   Frontend: http://10.1.155.28:8090/cccokrtracker/
-    echo   Backend:  http://10.1.155.28:8090/okr-tracker-backend/
-    echo   Health:   http://10.1.155.28:8090/okr-tracker-backend/actuator/health
+    echo   Frontend: https://10.1.155.29:8443/cccokrtracker/
+    echo   Backend:  https://10.1.155.29:8443/okr-tracker-backend/
+    echo   Health:   https://10.1.155.29:8443/okr-tracker-backend/actuator/health
     echo.
 ) > "%OUTPUT_DIR%\DEPLOYMENT-INSTRUCTIONS.txt"
 

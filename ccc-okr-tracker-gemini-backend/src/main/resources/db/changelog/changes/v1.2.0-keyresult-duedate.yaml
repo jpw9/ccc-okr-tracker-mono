@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.2.0-add-duedate-to-keyresult
+      author: system
+      changes:
+        - addColumn:
+            tableName: key_result
+            columns:
+              - column:
+                  name: due_date
+                  type: varchar(255)
+                  remarks: "Due date for the Key Result"
+        
+        - dropColumn:
+            tableName: key_result
+            columnName: metric_start
+        
+        - dropColumn:
+            tableName: key_result
+            columnName: metric_target
+        
+        - dropColumn:
+            tableName: key_result
+            columnName: metric_current
+        
+        - dropColumn:
+            tableName: key_result
+            columnName: unit

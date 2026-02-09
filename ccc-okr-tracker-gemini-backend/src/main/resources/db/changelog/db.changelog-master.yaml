@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/v1.0.0-initial-schema.yaml
   - include:
       file: db/changelog/changes/v1.1.0-project-access-control.yaml
+  - include:
+      file: db/changelog/changes/v1.2.0-keyresult-duedate.yaml

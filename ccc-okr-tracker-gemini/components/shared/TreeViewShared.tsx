@@ -171,8 +171,6 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
     const getInitialState = () => {
         const defaultState: any = { 
             progress: 0, 
-            metricStart: 0, 
-            metricTarget: 100,
             year: new Date().getFullYear(),
             quarter: Quarter.Q1, 
             isCompleted: false
@@ -187,9 +185,7 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
             }
         }
         
-        if (cleanedData.metricStart === null) cleanedData.metricStart = 0;
-        if (cleanedData.metricTarget === null) cleanedData.metricTarget = 100;
-        if (cleanedData.metricCurrent === null) cleanedData.metricCurrent = 0;
+        if (cleanedData.dueDate === null) cleanedData.dueDate = '';
 
         return { ...defaultState, ...cleanedData };
     };
@@ -324,23 +320,9 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
                         )}
 
                         {nodeType === 'KeyResult' && (
-                            <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label className={hierarchyStyles.dialog.label}>Start</label>
-                                    <input type="number" name="metricStart" value={formData.metricStart ?? 0} onChange={handleChange} className={hierarchyStyles.dialog.input} />
-                                </div>
-                                <div>
-                                    <label className={hierarchyStyles.dialog.label}>Target</label>
-                                    <input type="number" name="metricTarget" value={formData.metricTarget ?? 100} onChange={handleChange} className={hierarchyStyles.dialog.input} />
-                                </div>
-                                <div>
-                                    <label className={hierarchyStyles.dialog.label}>Current</label>
-                                    <input type="number" name="metricCurrent" value={formData.metricCurrent ?? 0} onChange={handleChange} className={hierarchyStyles.dialog.input} />
-                                </div>
-                                <div className="col-span-3">
-                                    <label className={hierarchyStyles.dialog.label}>Unit (e.g. %, $)</label>
-                                    <input name="unit" value={formData.unit || ''} onChange={handleChange} className={hierarchyStyles.dialog.input} placeholder="e.g. % or Users" />
-                                </div>
+                            <div>
+                                <label className={hierarchyStyles.dialog.label}>Due Date</label>
+                                <input type="date" name="dueDate" value={formData.dueDate || ''} onChange={handleChange} className={hierarchyStyles.dialog.input} />
                             </div>
                         )}
                         
@@ -642,10 +624,10 @@ export const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                                             </span>
                                         )}
                                     </div>
-                                    {item.type === 'KeyResult' && (
+                                    {item.type === 'KeyResult' && item.dueDate && (
                                         <div className="flex items-center gap-2">
-                                            <span className={hierarchyStyles.node.metricText}>
-                                                • {item.metricCurrent} / {item.metricTarget} {item.unit}
+                                            <span className="text-xs text-slate-500">
+                                                Due: {new Date(item.dueDate).toLocaleDateString()}
                                             </span>
                                         </div>
                                     )}

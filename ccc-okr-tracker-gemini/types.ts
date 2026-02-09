@@ -36,10 +36,7 @@ export interface KeyResult extends BaseItem {
   type: 'KeyResult';
   objectiveId: number;
   assignee: string;
-  metricStart: number;
-  metricTarget: number;
-  metricCurrent: number;
-  unit: string; // e.g., "%", "$", "Users"
+  dueDate: string;
   actionItems: ActionItem[];
 }
 

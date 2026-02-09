@@ -192,10 +192,7 @@ public class ImportService {
                                 newKr.setTitle(row.getKrTitle());
                                 newKr.setDescription(row.getKrDescription());
                                 newKr.setAssignee(row.getKrAssignee());
-                                newKr.setMetricStart(Optional.ofNullable(row.getKrMetricStart()).orElse(0.0));
-                                newKr.setMetricTarget(Optional.ofNullable(row.getKrMetricTarget()).orElse(0.0));
-                                newKr.setMetricCurrent(Optional.ofNullable(row.getKrMetricCurrent()).orElse(0.0));
-                                newKr.setUnit(row.getKrUnit());
+                                newKr.setDueDate(row.getKrDueDate() != null ? row.getKrDueDate().toString() : null);
                                 newKr.setObjective(currentObjective);
                                 newKr.setProgress(0);
 

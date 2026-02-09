@@ -35,10 +35,7 @@ public class HierarchyImportRow {
     private String krTitle;
     private String krDescription;
     private String krAssignee;
-    private Double krMetricStart;
-    private Double krMetricTarget;
-    private Double krMetricCurrent;
-    private String krUnit;
+    private LocalDate krDueDate;
 
     // Action Item (Level 6)
     private String actionItemTitle;

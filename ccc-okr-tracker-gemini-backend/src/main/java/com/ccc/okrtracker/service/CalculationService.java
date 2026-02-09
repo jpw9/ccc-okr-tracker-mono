@@ -98,24 +98,23 @@ public class CalculationService {
 
                         // KR Logic: Smart calculation based on manual lock flag
                         // 1. If KR was manually set (manualProgressSet=true), use direct value and ignore action items
-                        // 2. Otherwise, calculate from action items or metrics
+                        // 2. Otherwise, calculate from action items
                         int krProgress = 0;
                         
                         boolean manuallySet = kr.getManualProgressSet() != null && kr.getManualProgressSet();
                         
-                        logger.info("KR {} calculation: manualProgressSet={}, hasActionItems={}, hasMetrics={}", 
+                        logger.info("KR {} calculation: manualProgressSet={}, hasActionItems={}", 
                                 kr.getId(), 
                                 manuallySet, 
-                                !kr.getActionItems().isEmpty(),
-                                (kr.getMetricTarget() != null && kr.getMetricCurrent() != null));
+                                !kr.getActionItems().isEmpty());
                         
                         if (manuallySet) {
-                            // If manually set, use the progress value directly - don't recalculate or sync from metrics
+                            // If manually set, use the progress value directly - don't recalculate
                             // This preserves the user's manual input while allowing rollup to parent entities
                             krProgress = safeProgress(kr.getProgress());
                             logger.info("KR {} is MANUAL: using progress={}", kr.getId(), krProgress);
                         } else {
-                            // KR was not manually set, calculate from action items or metrics
+                            // KR was not manually set, calculate from action items
                             
                             // Check if action items exist and should be used
                             long totalAiCount = kr.getActionItems().stream()
@@ -137,46 +136,12 @@ public class CalculationService {
                                         .sum();
                                 krProgress = (int) Math.min(100, Math.round(aiSum / activeAiCount));
                                 logger.info("KR {} calculated from {} active action items: progress={}", kr.getId(), activeAiCount, krProgress);
-                                
-                                // Update metricCurrent to reflect the calculated progress
-                                if (kr.getMetricTarget() != null && kr.getMetricTarget() > 0) {
-                                    double start = Optional.ofNullable(kr.getMetricStart()).orElse(0.0);
-                                    double target = kr.getMetricTarget();
-                                    double range = target - start;
-                                    double newCurrent = start + (range * krProgress / 100.0);
-                                    kr.setMetricCurrent(newCurrent);
-                                }
                             } else if (totalAiCount > 0) {
                                 // All action items were deleted - reset progress to 0
                                 krProgress = 0;
                                 logger.info("KR {} has {} deleted action items, resetting progress to 0", kr.getId(), totalAiCount);
-                                // Also reset metricCurrent if metrics exist
-                                if (kr.getMetricTarget() != null && kr.getMetricTarget() > 0) {
-                                    double start = Optional.ofNullable(kr.getMetricStart()).orElse(0.0);
-                                    kr.setMetricCurrent(start);
-                                }
-                            } else if (kr.getMetricTarget() != null && kr.getMetricTarget() > 0 && 
-                                      kr.getMetricCurrent() != null) {
-                                // No action items, calculate from metrics
-                                double target = kr.getMetricTarget();
-                                double start = Optional.ofNullable(kr.getMetricStart()).orElse(0.0);
-                                double current = kr.getMetricCurrent();
-
-                                double range = target - start;
-                                
-                                logger.info("KR {} calculating from metrics: start={}, current={}, target={}, range={}", 
-                                        kr.getId(), start, current, target, range);
-
-                                if (range != 0.0) {
-                                    double percentage = ((current - start) / range) * 100;
-                                    krProgress = (int) Math.min(100, Math.max(0, Math.round(percentage)));
-                                    logger.info("KR {} metric calculation: percentage={}, krProgress={}", kr.getId(), percentage, krProgress);
-                                } else if (current == start) {
-                                    krProgress = 0;
-                                    logger.info("KR {} metric calculation: range is 0 and current==start, setting progress=0", kr.getId());
-                                }
                             } else {
-                                // No action items and no metrics, use current progress value
+                                // No action items, use current progress value
                                 krProgress = safeProgress(kr.getProgress());
                             }
                         }

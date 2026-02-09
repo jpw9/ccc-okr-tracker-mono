@@ -303,39 +303,25 @@ public class HierarchyService {
 
         // Store original values before updates
         Integer originalProgress = kr.getProgress();
-        Double originalMetricCurrent = kr.getMetricCurrent();
-        Double originalMetricTarget = kr.getMetricTarget();
-        Double originalMetricStart = kr.getMetricStart();
         
         Optional.ofNullable(updates.getTitle()).ifPresent(kr::setTitle);
         Optional.ofNullable(updates.getDescription()).ifPresent(kr::setDescription);
         Optional.ofNullable(updates.getAssignee()).ifPresent(kr::setAssignee);
-        Optional.ofNullable(updates.getMetricStart()).ifPresent(kr::setMetricStart);
-        Optional.ofNullable(updates.getMetricTarget()).ifPresent(kr::setMetricTarget);
-        Optional.ofNullable(updates.getMetricCurrent()).ifPresent(kr::setMetricCurrent);
-        Optional.ofNullable(updates.getUnit()).ifPresent(kr::setUnit);
+        Optional.ofNullable(updates.getDueDate()).ifPresent(kr::setDueDate);
         Optional.ofNullable(updates.getProgress()).ifPresent(kr::setProgress);
         
-        // Track if we need to recalculate
+        // Track if we need to recalculation
         boolean needsRecalculation = false;
         
-        // Determine if progress was manually changed or if metrics were updated
+        // Determine if progress was manually changed
         boolean progressChanged = updates.getProgress() != null && 
                                  !updates.getProgress().equals(originalProgress);
-        boolean metricsChanged = (updates.getMetricCurrent() != null && !updates.getMetricCurrent().equals(originalMetricCurrent)) ||
-                                (updates.getMetricTarget() != null && !updates.getMetricTarget().equals(originalMetricTarget)) ||
-                                (updates.getMetricStart() != null && !updates.getMetricStart().equals(originalMetricStart));
         
-        if (progressChanged && !metricsChanged) {
+        if (progressChanged) {
             // Only progress was changed directly - lock it as manually set
             kr.setManualProgressSet(true);
             needsRecalculation = true;
             logger.info("KeyResult id={}: progress manually changed from {} to {}", id, originalProgress, kr.getProgress());
-        } else if (metricsChanged) {
-            // Metrics were updated - unlock it so it recalculates from metrics
-            kr.setManualProgressSet(false);
-            needsRecalculation = true;
-            logger.info("KeyResult id={}: metrics updated, unlocking for recalculation", id);
         }
 
         // Get projectId BEFORE soft delete to avoid detached entity issues

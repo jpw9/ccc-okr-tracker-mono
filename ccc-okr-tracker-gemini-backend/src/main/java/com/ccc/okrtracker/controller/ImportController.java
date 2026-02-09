@@ -38,7 +38,7 @@ public class ImportController {
             "Initiative Title", "Initiative Description",
             "Goal Title", "Goal Description",
             "Objective Title", "Objective Description", "Objective Assignee", "Objective Year", "Objective Quarter", "Objective Due Date",
-            "KR Title", "KR Description", "KR Assignee", "KR Metric Start", "KR Metric Target", "KR Metric Current", "KR Unit",
+            "KR Title", "KR Description", "KR Assignee", "KR Due Date",
             "Action Item Title", "Action Item Description", "Action Item Assignee", "Action Item Due Date", "Action Item Is Completed"
     };
 
@@ -57,8 +57,8 @@ public class ImportController {
             // Log the detailed exception
             e.printStackTrace();
             // IMPROVEMENT: Provide a more informative error for the user
-            String errorMessage = e.getMessage() != null && e.getMessage().contains("expected 24")
-                    ? "Import failed. The CSV file must contain exactly 24 columns in the correct order, starting with the header row. Check for missing columns or extra delimiters in the file."
+            String errorMessage = e.getMessage() != null && e.getMessage().contains("expected 20")
+                    ? "Import failed. The CSV file must contain exactly 20 columns in the correct order, starting with the header row. Check for missing columns or extra delimiters in the file."
                     : "Error during import: " + e.getMessage();
             return ResponseEntity.internalServerError().body(errorMessage);
         }
@@ -117,10 +117,7 @@ public class ImportController {
                     row.setKrTitle(csvRecord.get("KR Title"));
                     row.setKrDescription(csvRecord.get("KR Description"));
                     row.setKrAssignee(csvRecord.get("KR Assignee"));
-                    row.setKrMetricStart(parseDouble(csvRecord.get("KR Metric Start")));
-                    row.setKrMetricTarget(parseDouble(csvRecord.get("KR Metric Target")));
-                    row.setKrMetricCurrent(parseDouble(csvRecord.get("KR Metric Current")));
-                    row.setKrUnit(csvRecord.get("KR Unit"));
+                    row.setKrDueDate(parseDate(csvRecord.get("KR Due Date")));
 
                     // Action Item
                     row.setActionItemTitle(csvRecord.get("Action Item Title"));

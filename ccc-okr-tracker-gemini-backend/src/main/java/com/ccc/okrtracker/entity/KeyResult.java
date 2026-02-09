@@ -17,10 +17,7 @@ public class KeyResult extends BaseEntity {
     private Integer progress = 0;
 
     private String assignee;
-    private Double metricStart;
-    private Double metricTarget;
-    private Double metricCurrent;
-    private String unit; // "%", "$", etc.
+    private String dueDate; // Due date for the Key Result
     
     // Flag: true = KR was manually set, use direct value. false = calculate from action items
     private Boolean manualProgressSet = false;

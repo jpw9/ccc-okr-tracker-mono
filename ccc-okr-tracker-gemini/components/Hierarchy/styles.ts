@@ -9,15 +9,17 @@ export const styles = {
         addButton: "flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 shadow-sm transition-all whitespace-nowrap cursor-pointer select-none"
     },
     filterBar: {
-        wrapper: "bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between",
-        group: "flex flex-wrap items-center gap-4",
-        label: "text-sm font-medium text-slate-700 whitespace-nowrap",
-        select: "h-9 px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white max-w-[200px]",
-        toggleBtn: (isActive: boolean) => `flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors border ${
+        wrapper: "bg-gradient-to-br from-slate-50 to-white p-3 rounded-xl shadow-sm border border-slate-200/60 mb-6 flex flex-col gap-3",
+        row: "flex flex-wrap items-center gap-3",
+        filterGroup: "inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200/60 shadow-sm",
+        label: "text-xs font-semibold text-slate-600 uppercase tracking-wide",
+        select: "h-8 px-2.5 py-1 border-0 bg-slate-50 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white transition-all min-w-[120px] max-w-[180px] text-slate-700 font-medium",
+        toggleBtn: (isActive: boolean) => `inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border shadow-sm ${
             isActive 
-            ? 'bg-brand-50 text-brand-700 border-brand-200' 
-            : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
+            ? 'bg-brand-500 text-white border-brand-600 shadow-brand-200' 
+            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-md'
         }`,
+        divider: "h-6 w-px bg-slate-200",
     },
     list: {
         wrapper: "space-y-6 animate-in fade-in duration-500",

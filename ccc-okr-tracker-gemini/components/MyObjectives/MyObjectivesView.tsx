@@ -267,91 +267,98 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                 </div>
             </div>
 
-            {/* Filter Bar (Custom for MyObjectives) */}
+            {/* MODERN COMPACT FILTER BAR */}
             <div className={hierarchyStyles.filterBar.wrapper}>
-                <div className={hierarchyStyles.filterBar.group}>
-                   <label className={hierarchyStyles.filterBar.label}>Quarter:</label>
-                   {/* Quarter-Year Combined Filter - Multi-select dropdown */}
-                   <div className="relative">
-                       <button
-                           onClick={() => setQuarterYearDropdownOpen(!quarterYearDropdownOpen)}
-                           className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                       >
-                           <span className="text-slate-700">
-                               {filterQuarterYears.length === 0 
-                                   ? 'All Quarters' 
-                                   : filterQuarterYears.join(', ')}
-                           </span>
-                           <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                           </svg>
-                       </button>
-                       {quarterYearDropdownOpen && (
-                           <div className="absolute z-50 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
-                               <div className="p-2 space-y-1">
-                                   {quarterYearOptions.map(qy => (
-                                       <label key={qy} className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-100 rounded cursor-pointer">
-                                           <input
-                                               type="checkbox"
-                                               checked={filterQuarterYears.includes(qy)}
-                                               onChange={(e) => {
-                                                   const newQuarterYears = e.target.checked
-                                                       ? [...filterQuarterYears, qy]
-                                                       : filterQuarterYears.filter(fqy => fqy !== qy);
-                                                   setFilterQuarterYears(newQuarterYears);
-                                               }}
-                                               className="h-4 w-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
-                                           />
-                                           <span className="text-sm text-slate-700">{qy}</span>
-                                       </label>
-                                   ))}
+                <div className={hierarchyStyles.filterBar.row}>
+                   {/* Quarter Filter */}
+                   <div className={hierarchyStyles.filterBar.filterGroup}>
+                       <label className={hierarchyStyles.filterBar.label}>Quarter</label>
+                       <div className="relative">
+                           <button
+                               onClick={() => setQuarterYearDropdownOpen(!quarterYearDropdownOpen)}
+                               className="h-8 px-2.5 py-1 bg-slate-50 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white transition-all min-w-[120px] max-w-[180px] text-slate-700 font-medium flex items-center justify-between gap-2"
+                           >
+                               <span className="truncate text-left flex-1">
+                                   {filterQuarterYears.length === 0 
+                                       ? 'All' 
+                                       : filterQuarterYears.length === 1
+                                       ? filterQuarterYears[0]
+                                       : `${filterQuarterYears.length} selected`}
+                               </span>
+                               <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                               </svg>
+                           </button>
+                           {quarterYearDropdownOpen && (
+                               <div className="absolute z-50 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                                   <div className="p-2 space-y-0.5">
+                                       {quarterYearOptions.map(qy => (
+                                           <label key={qy} className="flex items-center gap-2 px-2 py-1.5 hover:bg-brand-50 rounded cursor-pointer transition-colors">
+                                               <input
+                                                   type="checkbox"
+                                                   checked={filterQuarterYears.includes(qy)}
+                                                   onChange={(e) => {
+                                                       const newQuarterYears = e.target.checked
+                                                           ? [...filterQuarterYears, qy]
+                                                           : filterQuarterYears.filter(fqy => fqy !== qy);
+                                                       setFilterQuarterYears(newQuarterYears);
+                                                   }}
+                                                   className="h-3.5 w-3.5 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                                               />
+                                               <span className="text-sm text-slate-700">{qy}</span>
+                                           </label>
+                                       ))}
+                                   </div>
+                                   <div className="border-t border-slate-200 p-2">
+                                       <button
+                                           onClick={() => {
+                                               setFilterQuarterYears([]);
+                                           }}
+                                           className="w-full px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                       >
+                                           Clear All
+                                       </button>
+                                   </div>
                                </div>
-                               <div className="border-t border-slate-200 p-2 flex gap-2">
-                                   <button
-                                       onClick={() => {
-                                           setFilterQuarterYears([]);
-                                       }}
-                                       className="flex-1 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded"
-                                   >
-                                       Clear All
-                                   </button>
-                               </div>
-                           </div>
-                       )}
+                           )}
+                       </div>
                    </div>
 
-                    <label className={hierarchyStyles.filterBar.label}>View:</label>
-                    <select 
-                       value={filterType} 
-                       onChange={e => setFilterType(e.target.value)} 
-                       className={hierarchyStyles.filterBar.select}
-                   >
-                       {filterTypes.map(type => (
-                           <option key={type} value={type}>{formatNodeType(type)}</option>
-                       ))}
-                   </select>
+                    {/* View Filter */}
+                    <div className={hierarchyStyles.filterBar.filterGroup}>
+                        <label className={hierarchyStyles.filterBar.label}>View</label>
+                        <select 
+                           value={filterType} 
+                           onChange={e => setFilterType(e.target.value)} 
+                           className={hierarchyStyles.filterBar.select}
+                       >
+                           {filterTypes.map(type => (
+                               <option key={type} value={type}>{formatNodeType(type)}</option>
+                           ))}
+                       </select>
+                    </div>
 
+                    <div className={hierarchyStyles.filterBar.divider}></div>
+                
+                    {/* View Toggles */}
+                    <button 
+                        onClick={() => setHideDescription(!hideDescription)}
+                        className={hierarchyStyles.filterBar.toggleBtn(hideDescription)}
+                        title={hideDescription ? 'Show Descriptions' : 'Hide Descriptions'}
+                    >
+                        <EyeOff className="w-3.5 h-3.5"/> 
+                        <span>Descriptions</span>
+                    </button>
+                    
+                    <button 
+                        onClick={() => setHideProgress(!hideProgress)}
+                        className={hierarchyStyles.filterBar.toggleBtn(hideProgress)}
+                        title={hideProgress ? 'Show Progress' : 'Hide Progress'}
+                    >
+                        <EyeOff className="w-3.5 h-3.5"/> 
+                        <span>Progress</span>
+                    </button>
                 </div>
-                
-                {/* Hide Description Toggle */}
-                <button 
-                    onClick={() => setHideDescription(!hideDescription)}
-                    className={hierarchyStyles.filterBar.toggleBtn(hideDescription)}
-                    title={hideDescription ? 'Show Descriptions' : 'Hide Descriptions'}
-                >
-                    <EyeOff className="w-4 h-4 mr-1"/> 
-                    {hideDescription ? 'Descriptions Hidden' : 'Hide Descriptions'}
-                </button>
-                
-                {/* Hide Progress Toggle */}
-                <button 
-                    onClick={() => setHideProgress(!hideProgress)}
-                    className={hierarchyStyles.filterBar.toggleBtn(hideProgress)}
-                    title={hideProgress ? 'Show Progress' : 'Hide Progress'}
-                >
-                    <EyeOff className="w-4 h-4 mr-1"/> 
-                    {hideProgress ? 'Progress Hidden' : 'Hide Progress'}
-                </button>
             </div>
 
             <div className={hierarchyStyles.list.wrapper}>

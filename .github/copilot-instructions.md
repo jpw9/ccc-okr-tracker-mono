@@ -49,14 +49,28 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - `services/dataService.ts` - API service layer
 - `components/Layout.tsx` - Navigation structure
 
+## Current Focus
+<!-- Update this when starting work on a new screen -->
+**Status:** Up to date - No active development tasks
+**Last Updated:** Feb 9, 2026
+**Backlog:** See `docs/BACKLOG.md` for full list
+
 ## Current State / Known Issues
 <!-- Update this section as project evolves -->
+- Modern filter bar design: Completed for Hierarchy and My Objectives (Feb 8, 2026)
 - Hide Progress toggle: Implemented in Hierarchy and My Objectives views
 - Case-insensitive email lookup: Fixed in UserRepository.java
 - All Tomcat 9 references removed - using Tomcat 10 only
+- Action Item consistency: Progress and isCompleted automatically synced (Feb 8, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->
+
+### Modern Filter Bar UI (Completed: Feb 8-9, 2026)
+- **Screens:** Hierarchy View, My Objectives
+- **Description:** Modern, compact filter bar design with grouped controls, gradient backgrounds, and improved visual hierarchy
+- **Key improvements:** Gradient card backgrounds, compact form controls (h-8), grouped filter sections with white cards, better toggle buttons with brand colors, visual dividers, consistent spacing
+- **Responsive:** Optimized flex wrapping, truncated text with tooltips, selection count display for multi-select dropdowns
 
 ### Mindmap View (Completed: Feb 6, 2026)
 - **Spec:** `docs/features/MINDMAP.md`, `docs/features/MINDMAP_CHANGELOG.md`

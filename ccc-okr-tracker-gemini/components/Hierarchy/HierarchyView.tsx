@@ -445,122 +445,132 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
              </div>
           </div>
           
-          {/* COMPACT FILTER BAR */}
+          {/* MODERN COMPACT FILTER BAR */}
           <div className={styles.filterBar.wrapper}>
-              <div className={styles.filterBar.group}>
-                   <label className={styles.filterBar.label}>Level:</label>
-                   {/* Level Filter - ALL displays as one word */}
-                   <select 
-                       value={filters.filterType} 
-                       onChange={e => handleFilterChange('filterType', e.target.value)} 
-                       className={styles.filterBar.select}
-                   >
-                       {LEVEL_TYPES.map(type => (
-                           <option key={type} value={type}>{formatNodeType(type)}</option>
-                       ))}
-                   </select>
-
-                   <label className={styles.filterBar.label}>Status:</label>
-                   {/* Status Filter */}
-                   <select 
-                       value={filters.filterStatus} 
-                       onChange={e => handleFilterChange('filterStatus', e.target.value)} 
-                       className={styles.filterBar.select}
-                   >
-                       {STATUS_TYPES.map(status => (
-                           <option key={status} value={status}>
-                               {status.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
-                           </option>
-                       ))}
-                   </select>
-
-                   <label className={styles.filterBar.label}>Quarter:</label>
-                   {/* Quarter-Year Combined Filter - Multi-select dropdown */}
-                   <div className="relative">
-                       <button
-                           onClick={() => setQuarterYearDropdownOpen(!quarterYearDropdownOpen)}
-                           className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              {/* Main Filters Row */}
+              <div className={styles.filterBar.row}>
+                   {/* Level Filter */}
+                   <div className={styles.filterBar.filterGroup}>
+                       <label className={styles.filterBar.label}>Level</label>
+                       <select 
+                           value={filters.filterType} 
+                           onChange={e => handleFilterChange('filterType', e.target.value)} 
+                           className={styles.filterBar.select}
                        >
-                           <span className="text-slate-700">
-                               {filters.filterQuarterYears.length === 0 
-                                   ? 'All Quarters' 
-                                   : filters.filterQuarterYears.join(', ')}
-                           </span>
-                           <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                           </svg>
-                       </button>
-                       {quarterYearDropdownOpen && (
-                           <div className="absolute z-50 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
-                               <div className="p-2 space-y-1">
-                                   {QUARTER_YEAR_OPTIONS.map(qy => (
-                                       <label key={qy} className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-100 rounded cursor-pointer">
-                                           <input
-                                               type="checkbox"
-                                               checked={filters.filterQuarterYears.includes(qy)}
-                                               onChange={(e) => {
-                                                   const newQuarterYears = e.target.checked
-                                                       ? [...filters.filterQuarterYears, qy]
-                                                       : filters.filterQuarterYears.filter(fqy => fqy !== qy);
-                                                   handleFilterChange('filterQuarterYears', newQuarterYears);
-                                               }}
-                                               className="h-4 w-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
-                                           />
-                                           <span className="text-sm text-slate-700">{qy}</span>
-                                       </label>
-                                   ))}
+                           {LEVEL_TYPES.map(type => (
+                               <option key={type} value={type}>{formatNodeType(type)}</option>
+                           ))}
+                       </select>
+                   </div>
+
+                   {/* Status Filter */}
+                   <div className={styles.filterBar.filterGroup}>
+                       <label className={styles.filterBar.label}>Status</label>
+                       <select 
+                           value={filters.filterStatus} 
+                           onChange={e => handleFilterChange('filterStatus', e.target.value)} 
+                           className={styles.filterBar.select}
+                       >
+                           {STATUS_TYPES.map(status => (
+                               <option key={status} value={status}>
+                                   {status.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
+                               </option>
+                           ))}
+                       </select>
+                   </div>
+
+                   {/* Quarter Filter */}
+                   <div className={styles.filterBar.filterGroup}>
+                       <label className={styles.filterBar.label}>Quarter</label>
+                       <div className="relative">
+                           <button
+                               onClick={() => setQuarterYearDropdownOpen(!quarterYearDropdownOpen)}
+                               className="h-8 px-2.5 py-1 bg-slate-50 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white transition-all min-w-[120px] max-w-[180px] text-slate-700 font-medium flex items-center justify-between gap-2"
+                           >
+                               <span className="truncate text-left flex-1">
+                                   {filters.filterQuarterYears.length === 0 
+                                       ? 'All' 
+                                       : filters.filterQuarterYears.length === 1
+                                       ? filters.filterQuarterYears[0]
+                                       : `${filters.filterQuarterYears.length} selected`}
+                               </span>
+                               <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                               </svg>
+                           </button>
+                           {quarterYearDropdownOpen && (
+                               <div className="absolute z-50 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                                   <div className="p-2 space-y-0.5">
+                                       {QUARTER_YEAR_OPTIONS.map(qy => (
+                                           <label key={qy} className="flex items-center gap-2 px-2 py-1.5 hover:bg-brand-50 rounded cursor-pointer transition-colors">
+                                               <input
+                                                   type="checkbox"
+                                                   checked={filters.filterQuarterYears.includes(qy)}
+                                                   onChange={(e) => {
+                                                       const newQuarterYears = e.target.checked
+                                                           ? [...filters.filterQuarterYears, qy]
+                                                           : filters.filterQuarterYears.filter(fqy => fqy !== qy);
+                                                       handleFilterChange('filterQuarterYears', newQuarterYears);
+                                                   }}
+                                                   className="h-3.5 w-3.5 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                                               />
+                                               <span className="text-sm text-slate-700">{qy}</span>
+                                           </label>
+                                       ))}
+                                   </div>
+                                   <div className="border-t border-slate-200 p-2">
+                                       <button
+                                           onClick={() => {
+                                               handleFilterChange('filterQuarterYears', []);
+                                           }}
+                                           className="w-full px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                       >
+                                           Clear All
+                                       </button>
+                                   </div>
                                </div>
-                               <div className="border-t border-slate-200 p-2 flex gap-2">
-                                   <button
-                                       onClick={() => {
-                                           handleFilterChange('filterQuarterYears', []);
-                                       }}
-                                       className="flex-1 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded"
-                                   >
-                                       Clear All
-                                   </button>
-                               </div>
-                           </div>
-                       )}
+                           )}
+                       </div>
                    </div>
                    
-                   <label className={styles.filterBar.label}>Isolate:</label>
-                   {/* Initiative Isolation Filter: Now constrained by max-w-[200px] in styles.ts */}
-                   <select 
-                        value={filters.filterInitiativeId} 
-                        onChange={e => handleFilterChange('filterInitiativeId', e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))} 
-                        className={styles.filterBar.select}
-                    >
-                        <option value="ALL">All Initiatives</option>
-                        {allInitiatives.map(init => (
-                            <option key={init.id} value={init.id}>
-                                {init.title} ({init.projectTitle})
-                            </option>
-                        ))}
-                    </select>
+                   {/* Initiative Isolation Filter */}
+                   <div className={styles.filterBar.filterGroup}>
+                       <label className={styles.filterBar.label}>Initiative</label>
+                       <select 
+                            value={filters.filterInitiativeId} 
+                            onChange={e => handleFilterChange('filterInitiativeId', e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))} 
+                            className={styles.filterBar.select}
+                        >
+                            <option value="ALL">All</option>
+                            {allInitiatives.map(init => (
+                                <option key={init.id} value={init.id} title={`${init.title} (${init.projectTitle})`}>
+                                    {init.title.length > 20 ? init.title.substring(0, 20) + '...' : init.title}
+                                </option>
+                            ))}
+                        </select>
+                   </div>
 
-
+                   <div className={styles.filterBar.divider}></div>
+                   
+                   {/* View Toggles */}
+                   <button 
+                       onClick={() => handleFilterChange('hideDescription', !filters.hideDescription)}
+                       className={styles.filterBar.toggleBtn(filters.hideDescription)}
+                       title={filters.hideDescription ? 'Show Descriptions' : 'Hide Descriptions'}
+                   >
+                       <EyeOff className="w-3.5 h-3.5"/> 
+                       <span>Descriptions</span>
+                   </button>
+                   
+                   <button 
+                       onClick={() => handleFilterChange('hideProgress', !filters.hideProgress)}
+                       className={styles.filterBar.toggleBtn(filters.hideProgress)}
+                       title={filters.hideProgress ? 'Show Progress' : 'Hide Progress'}
+                   >
+                       <EyeOff className="w-3.5 h-3.5"/> 
+                       <span>Progress</span>
+                   </button>
               </div>
-              
-              {/* Hide Description Toggle */}
-              <button 
-                  onClick={() => handleFilterChange('hideDescription', !filters.hideDescription)}
-                  className={styles.filterBar.toggleBtn(filters.hideDescription)}
-                  title={filters.hideDescription ? 'Show Descriptions' : 'Hide Descriptions'}
-              >
-                  <EyeOff className="w-4 h-4 mr-1"/> 
-                  {filters.hideDescription ? 'Descriptions Hidden' : 'Hide Descriptions'}
-              </button>
-              
-              {/* Hide Progress Toggle */}
-              <button 
-                  onClick={() => handleFilterChange('hideProgress', !filters.hideProgress)}
-                  className={styles.filterBar.toggleBtn(filters.hideProgress)}
-                  title={filters.hideProgress ? 'Show Progress' : 'Hide Progress'}
-              >
-                  <EyeOff className="w-4 h-4 mr-1"/> 
-                  {filters.hideProgress ? 'Progress Hidden' : 'Hide Progress'}
-              </button>
           </div>
 
           <div className={styles.list.wrapper}>
@@ -592,7 +602,7 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
                     <h3 className={styles.list.emptyTitle}>No Items Found</h3>
                     <p className={styles.list.emptyDesc}>Adjust your filters to view the strategic map.</p>
                     <button 
-                      onClick={() => setFilters({ filterType: 'ALL', filterQuarterYears: [], filterStatus: 'ALL', hideDescription: false, filterInitiativeId: 'ALL' })}
+                      onClick={() => setFilters({ filterType: 'ALL', filterQuarterYears: [], filterStatus: 'ALL', hideDescription: false, hideProgress: false, filterInitiativeId: 'ALL' })}
                       className={styles.list.emptyButton}
                     >
                         Clear All Filters

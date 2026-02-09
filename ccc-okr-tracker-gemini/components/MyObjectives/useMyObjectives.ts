@@ -22,6 +22,31 @@ export const useMyObjectives = (projects: Project[], currentUserLogin: string) =
         const userObjectives: ObjectiveWithContext[] = [];
         const currentUser = currentUserLogin;
 
+        // Helper to check if user is assigned anywhere in objective tree
+        const hasUserAssignment = (obj: any, user: string): boolean => {
+            if (!user) return false;
+            const userLower = user.toLowerCase();
+            
+            // Check objective itself
+            if (obj.assignee && obj.assignee.toLowerCase() === userLower) return true;
+            
+            // Check key results
+            if (obj.keyResults && Array.isArray(obj.keyResults)) {
+                for (const kr of obj.keyResults) {
+                    if (kr.assignee && kr.assignee.toLowerCase() === userLower && kr.isActive) return true;
+                    
+                    // Check action items
+                    if (kr.actionItems && Array.isArray(kr.actionItems)) {
+                        for (const ai of kr.actionItems) {
+                            if (ai.assignee && ai.assignee.toLowerCase() === userLower && ai.isActive) return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        };
+
         const traverse = (items: any[], currentProject: Project | null, currentInitiative?: string, currentGoal?: string) => {
             if (!items) return;
             
@@ -30,22 +55,65 @@ export const useMyObjectives = (projects: Project[], currentUserLogin: string) =
                 const initiativeContext = item.type === 'StrategicInitiative' ? item.title : currentInitiative;
                 const goalContext = item.type === 'Goal' ? item.title : currentGoal;
 
-                // Check for Objective assignment (case-insensitive)
+                // Check if Objective or any of its children (KeyResults/ActionItems) are assigned to user
                 if (item.type === 'Objective' 
-                    && item.assignee 
-                    && currentUser 
-                    && item.assignee.toLowerCase() === currentUser.toLowerCase()
-                    && item.isActive) {
+                    && item.isActive
+                    && hasUserAssignment(item, currentUser)) {
                     
-                    userObjectives.push({
-                        ...item,
-                        projectTitle: projContext?.title || 'Unknown Project',
-                        projectId: projContext?.id || 0,
-                        initiativeTitle: initiativeContext,
-                        goalTitle: goalContext,
-                        // Ensure keyResults are present to build the hierarchy below
-                        keyResults: item.keyResults || []
-                    });
+                    const userLower = currentUser.toLowerCase();
+                    const isObjectiveAssignedToUser = item.assignee && item.assignee.toLowerCase() === userLower;
+                    
+                    // If Objective is assigned to user, show everything under it
+                    if (isObjectiveAssignedToUser) {
+                        userObjectives.push({
+                            ...item,
+                            projectTitle: projContext?.title || 'Unknown Project',
+                            projectId: projContext?.id || 0,
+                            initiativeTitle: initiativeContext,
+                            goalTitle: goalContext,
+                            keyResults: item.keyResults || []
+                        });
+                    } else {
+                        // Objective not assigned to user, filter down to show only relevant branches
+                        const filteredKeyResults = (item.keyResults || [])
+                            .filter((kr: KeyResult) => {
+                                if (!kr.isActive) return false;
+                                
+                                // Include if KeyResult is assigned to user
+                                if (kr.assignee && kr.assignee.toLowerCase() === userLower) return true;
+                                
+                                // Include if any ActionItem is assigned to user
+                                if (kr.actionItems && Array.isArray(kr.actionItems)) {
+                                    return kr.actionItems.some((ai: ActionItem) => 
+                                        ai.isActive && ai.assignee && ai.assignee.toLowerCase() === userLower
+                                    );
+                                }
+                                
+                                return false;
+                            })
+                            .map((kr: KeyResult) => {
+                                const isKrAssignedToUser = kr.assignee && kr.assignee.toLowerCase() === userLower;
+                                
+                                return {
+                                    ...kr,
+                                    // If KeyResult assigned to user, show all ActionItems; otherwise only user's ActionItems
+                                    actionItems: isKrAssignedToUser 
+                                        ? (kr.actionItems || []).filter((ai: ActionItem) => ai.isActive)
+                                        : (kr.actionItems || []).filter((ai: ActionItem) => 
+                                            ai.isActive && ai.assignee && ai.assignee.toLowerCase() === userLower
+                                        )
+                                };
+                            });
+                        
+                        userObjectives.push({
+                            ...item,
+                            projectTitle: projContext?.title || 'Unknown Project',
+                            projectId: projContext?.id || 0,
+                            initiativeTitle: initiativeContext,
+                            goalTitle: goalContext,
+                            keyResults: filteredKeyResults
+                        });
+                    }
                 }
                 
                 // Recurse, passing updated context info

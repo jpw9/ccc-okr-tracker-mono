@@ -31,5 +31,6 @@ public class KeyResult extends BaseEntity {
     private Objective objective;
 
     @OneToMany(mappedBy = "keyResult", cascade = CascadeType.ALL)
+    @OrderBy("id ASC") // Maintain stable sort order by ID (creation order)
     private List<ActionItem> actionItems = new ArrayList<>();
 }

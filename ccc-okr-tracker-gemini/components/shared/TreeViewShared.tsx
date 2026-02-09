@@ -227,7 +227,23 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        
+        // For ActionItems, enforce sync between isCompleted and progress
+        // Progress field takes priority as the source of truth
+        if (nodeType === 'ActionItem') {
+            const finalData = { ...formData };
+            
+            // Sync isCompleted based on progress value
+            if (finalData.progress === 100) {
+                finalData.isCompleted = true;
+            } else if (finalData.progress != null && finalData.progress < 100) {
+                finalData.isCompleted = false;
+            }
+            
+            onSave(finalData);
+        } else {
+            onSave(formData);
+        }
     };
 
     const formattedNodeType = formatNodeType(nodeType);

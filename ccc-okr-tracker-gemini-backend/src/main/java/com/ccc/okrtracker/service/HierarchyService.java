@@ -159,11 +159,19 @@ public class HierarchyService {
         KeyResult kr = krRepo.findById(krId).orElseThrow(() -> new ResourceNotFoundException("KR not found"));
         ai.setKeyResult(kr);
 
-        // Ensure progress is set based on isCompleted status upon creation
-        if (Optional.ofNullable(ai.getIsCompleted()).orElse(false)) {
+        // Ensure consistency between progress and isCompleted upon creation
+        Integer progress = ai.getProgress();
+        Boolean isCompleted = ai.getIsCompleted();
+        
+        if (progress != null && progress == 100) {
+            ai.setIsCompleted(true);
+        } else if (progress != null && progress < 100) {
+            ai.setIsCompleted(false);
+        } else if (Boolean.TRUE.equals(isCompleted)) {
             ai.setProgress(100);
         } else {
             ai.setProgress(0);
+            ai.setIsCompleted(false);
         }
 
         ActionItem saved = aiRepo.save(ai);
@@ -398,6 +406,15 @@ public class HierarchyService {
             ai.softDelete(getCurrentUserLogin());
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
             ai.restore();
+        }
+
+        // Final validation: Ensure consistency between progress and isCompleted before saving
+        if (ai.getProgress() != null && ai.getProgress() == 100 && !Boolean.TRUE.equals(ai.getIsCompleted())) {
+            logger.info("Fixing inconsistency: progress=100 but isCompleted=false, setting isCompleted=true");
+            ai.setIsCompleted(true);
+        } else if (ai.getProgress() != null && ai.getProgress() < 100 && Boolean.TRUE.equals(ai.getIsCompleted())) {
+            logger.info("Fixing inconsistency: progress<100 but isCompleted=true, setting isCompleted=false");
+            ai.setIsCompleted(false);
         }
 
         // Save the KeyResult ID BEFORE saving the ActionItem (in case relationship gets detached)

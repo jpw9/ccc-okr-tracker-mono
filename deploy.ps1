@@ -27,12 +27,43 @@ Write-Host "============================================" -ForegroundColor Yello
 # Step 1: Build (unless skipped)
 if (-not $SkipBuild) {
     Write-Step "Building project..."
-    & .\build-for-tomcat.bat
-    if ($LASTEXITCODE -ne 0) {
-        Write-Err "Build failed!"
-        exit 1
+    
+    # Build based on flags
+    if ($BackendOnly) {
+        # Build only backend
+        Write-Host "   Building backend only..." -ForegroundColor Gray
+        Set-Location "ccc-okr-tracker-gemini-backend"
+        & .\mvnw.cmd clean package -DskipTests -Pprod
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Backend build failed!"
+            Set-Location ..
+            exit 1
+        }
+        # Copy backend WAR to build-output
+        if (-not (Test-Path "..\build-output")) { New-Item -ItemType Directory -Path "..\build-output" | Out-Null }
+        Copy-Item "target\okr-tracker-backend-0.0.1-SNAPSHOT.war" "..\build-output\okr-tracker-backend.war" -Force
+        Set-Location ..
+        Write-Success "Backend build completed"
     }
-    Write-Success "Build completed"
+    elseif ($FrontendOnly) {
+        # Build only frontend
+        Write-Host "   Building frontend only..." -ForegroundColor Gray
+        & .\build-for-tomcat.bat
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Frontend build failed!"
+            exit 1
+        }
+        Write-Success "Frontend build completed"
+    }
+    else {
+        # Build both
+        & .\build-for-tomcat.bat
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Build failed!"
+            exit 1
+        }
+        Write-Success "Build completed"
+    }
 }
 
 # Verify WAR files exist

@@ -24,6 +24,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
     const [users, setUsers] = useState<User[]>([]);
     const [roles, setRoles] = useState<Role[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [showInactive, setShowInactive] = useState(false);
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     // MODIFIED: Use the UserForEdit type
@@ -33,14 +34,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
     const loadData = useCallback(async () => {
         if (!token) return;
         const [u, r, p] = await Promise.all([
-            DataService.getUsers(token), // Pass token
+            DataService.getUsers(token, showInactive), // Pass token and showInactive flag
             DataService.getRoles(token), // Pass token
             DataService.getAllProjectsForAdmin(token) // Use admin endpoint for all projects
         ]);
         setUsers(u);
         setRoles(r);
         setProjects(p);
-    }, [token]);
+    }, [token, showInactive]);
 
     useEffect(() => {
         loadData();
@@ -133,6 +134,18 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
         }
     };
 
+    const handleReactivate = async (id: number) => {
+        if (window.confirm('Are you sure you want to reactivate this user?')) {
+            try {
+                await DataService.updateUser(id, { isActive: true }, token);
+                loadData();
+            } catch (error: any) {
+                console.error("Reactivate User Error:", error);
+                alert(`Error reactivating user: ${error.message}`);
+            }
+        }
+    };
+
     const handleRoleChange = (roleId: number) => {
         const currentRoles = editingUser.roleIds || [];
         if (currentRoles.includes(roleId)) {
@@ -149,9 +162,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
                     <h1 className={styles.header.title}>User Management</h1>
                     <p className={styles.header.subtitle}>Manage employees, accounts, and role assignments.</p>
                 </div>
-                <button onClick={handleCreate} className={styles.header.primaryBtn}>
-                    <Plus className="w-4 h-4 mr-2" /> Add User
-                </button>
+                <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={showInactive}
+                            onChange={(e) => setShowInactive(e.target.checked)}
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        Show inactive users
+                    </label>
+                    <button onClick={handleCreate} className={styles.header.primaryBtn}>
+                        <Plus className="w-4 h-4 mr-2" /> Add User
+                    </button>
+                </div>
             </div>
 
             <div className={styles.table.wrapper}>
@@ -168,14 +192,21 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
                     <tbody className={styles.table.body}>
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
-                                <tr key={user.id} className={styles.table.row}>
+                                <tr key={user.id} className={`${styles.table.row} ${!user.isActive ? 'opacity-50 bg-slate-50' : ''}`}>
                                     <td className={styles.table.cell}>
                                         <div className="flex items-center">
                                             <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 mr-3">
                                                 {user.avatar || 'U'}
                                             </div>
                                             <div>
-                                                <div className={styles.table.cellTitle}>{user.firstName} {user.lastName}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={styles.table.cellTitle}>{user.firstName} {user.lastName}</span>
+                                                    {!user.isActive && (
+                                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
+                                                            Inactive
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="text-xs text-slate-500">{user.email}</div>
                                             </div>
                                         </div>
@@ -216,7 +247,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
                                     </td>
                                     <td className={styles.table.actionsCell}>
                                         <button onClick={() => handleEdit(user)} className={styles.table.actionBtn}>Edit</button>
-                                        <button onClick={() => handleDelete(user.id)} className={styles.table.deleteBtn}>Deactivate</button>
+                                        {user.isActive ? (
+                                            <button onClick={() => handleDelete(user.id)} className={styles.table.deleteBtn}>Deactivate</button>
+                                        ) : (
+                                            <button onClick={() => handleReactivate(user.id)} className="px-3 py-1 text-sm font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100 transition-colors border border-green-200">
+                                                Reactivate
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))

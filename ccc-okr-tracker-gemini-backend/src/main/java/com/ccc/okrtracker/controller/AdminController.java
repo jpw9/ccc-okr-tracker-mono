@@ -47,8 +47,16 @@ public class AdminController {
     // --- Users ---
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public List<User> getUsers() {
+    public List<User> getUsers(@RequestParam(required = false, defaultValue = "false") boolean includeInactive) {
         List<User> users = userRepo.findAll();
+        
+        // Filter based on parameter
+        if (!includeInactive) {
+            users = users.stream()
+                    .filter(User::getIsActive)
+                    .toList();
+        }
+        
         // Populate assignedProjectIds for each user
         for (User user : users) {
             List<Long> projectIds = userProjectRepo.getUserProjectIds(user.getId());
@@ -59,8 +67,81 @@ public class AdminController {
 
     @PostMapping("/users")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public User createUser(@RequestBody User user) {
-        return userRepo.save(user);
+    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) {
+        // Check if user with same login already exists (including inactive)
+        User existingUser = userRepo.findByLogin(userDTO.getLogin()).orElse(null);
+        
+        if (existingUser != null) {
+            if (!existingUser.getIsActive()) {
+                // Reactivate the existing user instead of creating a new one
+                if (userDTO.getFirstName() != null) existingUser.setFirstName(userDTO.getFirstName());
+                if (userDTO.getLastName() != null) existingUser.setLastName(userDTO.getLastName());
+                if (userDTO.getEmail() != null) existingUser.setEmail(userDTO.getEmail());
+                if (userDTO.getGroupNo() != null) existingUser.setGroupNo(userDTO.getGroupNo());
+                if (userDTO.getAvatar() != null) existingUser.setAvatar(userDTO.getAvatar());
+                if (userDTO.getPrimaryProjectId() != null) existingUser.setPrimaryProjectId(userDTO.getPrimaryProjectId());
+                existingUser.setIsActive(true);
+                
+                // Handle roles
+                if (userDTO.getRoleIds() != null && !userDTO.getRoleIds().isEmpty()) {
+                    Set<Role> assignedRoles = new HashSet<>(roleRepo.findAllById(userDTO.getRoleIds()));
+                    existingUser.setRoles(assignedRoles);
+                }
+                
+                User savedUser = userRepo.save(existingUser);
+                
+                // Handle assigned projects
+                if (userDTO.getAssignedProjectIds() != null && !userDTO.getAssignedProjectIds().isEmpty()) {
+                    projectAccessService.updateUserProjectAssignments(
+                        savedUser.getId(),
+                        userDTO.getAssignedProjectIds(),
+                        AccessLevel.MEMBER,
+                        getCurrentUserEmail()
+                    );
+                }
+                
+                // Populate assignedProjectIds in the response
+                List<Long> projectIds = userProjectRepo.getUserProjectIds(savedUser.getId());
+                savedUser.setAssignedProjectIds(new HashSet<>(projectIds));
+                return ResponseEntity.ok(savedUser);
+            } else {
+                // User already exists and is active
+                return ResponseEntity.badRequest().body("User with login '" + userDTO.getLogin() + "' already exists");
+            }
+        }
+        
+        // Create new user
+        User user = new User();
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setEmail(userDTO.getEmail());
+        user.setLogin(userDTO.getLogin());
+        user.setGroupNo(userDTO.getGroupNo());
+        user.setAvatar(userDTO.getAvatar());
+        user.setPrimaryProjectId(userDTO.getPrimaryProjectId());
+
+        // Handle roles using roleIds from DTO
+        if (userDTO.getRoleIds() != null && !userDTO.getRoleIds().isEmpty()) {
+            Set<Role> assignedRoles = new HashSet<>(roleRepo.findAllById(userDTO.getRoleIds()));
+            user.setRoles(assignedRoles);
+        }
+
+        User savedUser = userRepo.save(user);
+
+        // Handle assigned projects
+        if (userDTO.getAssignedProjectIds() != null && !userDTO.getAssignedProjectIds().isEmpty()) {
+            projectAccessService.updateUserProjectAssignments(
+                savedUser.getId(),
+                userDTO.getAssignedProjectIds(),
+                AccessLevel.MEMBER,
+                getCurrentUserEmail()
+            );
+        }
+
+        // Populate assignedProjectIds in the response
+        List<Long> projectIds = userProjectRepo.getUserProjectIds(savedUser.getId());
+        savedUser.setAssignedProjectIds(new HashSet<>(projectIds));
+        return ResponseEntity.ok(savedUser);
     }
 
     @PutMapping("/users/{id}")
@@ -68,13 +149,15 @@ public class AdminController {
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return userRepo.findById(id)
                 .map(existingUser -> {
-                    // Update only mutable fields
-                    existingUser.setFirstName(userDTO.getFirstName());
-                    existingUser.setLastName(userDTO.getLastName());
-                    existingUser.setEmail(userDTO.getEmail());
-                    existingUser.setLogin(userDTO.getLogin());
-                    existingUser.setGroupNo(userDTO.getGroupNo());
-                    existingUser.setPrimaryProjectId(userDTO.getPrimaryProjectId());
+                    // Update only non-null fields (partial update)
+                    if (userDTO.getFirstName() != null) existingUser.setFirstName(userDTO.getFirstName());
+                    if (userDTO.getLastName() != null) existingUser.setLastName(userDTO.getLastName());
+                    if (userDTO.getEmail() != null) existingUser.setEmail(userDTO.getEmail());
+                    if (userDTO.getLogin() != null) existingUser.setLogin(userDTO.getLogin());
+                    if (userDTO.getGroupNo() != null) existingUser.setGroupNo(userDTO.getGroupNo());
+                    if (userDTO.getAvatar() != null) existingUser.setAvatar(userDTO.getAvatar());
+                    if (userDTO.getPrimaryProjectId() != null) existingUser.setPrimaryProjectId(userDTO.getPrimaryProjectId());
+                    if (userDTO.getIsActive() != null) existingUser.setIsActive(userDTO.getIsActive());
                     
                     // Handle roles update using roleIds from DTO
                     if (userDTO.getRoleIds() != null && !userDTO.getRoleIds().isEmpty()) {

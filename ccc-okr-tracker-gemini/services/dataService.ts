@@ -232,9 +232,10 @@ const endpointTypeMap: Record<string, string> = {
 
 // --- USERS (Admin) ---
 
-// MODIFIED: Added token parameter
-export const getUsers = async (token: string): Promise<User[]> => {
-    return await api('/api/admin/users', {}, token);
+// MODIFIED: Added token parameter and includeInactive option
+export const getUsers = async (token: string, includeInactive: boolean = false): Promise<User[]> => {
+    const url = includeInactive ? '/api/admin/users?includeInactive=true' : '/api/admin/users';
+    return await api(url, {}, token);
 };
 
 // MODIFIED: Added token parameter

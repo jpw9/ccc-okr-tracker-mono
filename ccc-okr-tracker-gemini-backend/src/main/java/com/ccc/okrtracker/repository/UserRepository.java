@@ -16,4 +16,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // UPDATED: Case-insensitive email lookup
     @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
     Optional<User> findByEmail(@Param("email") String email);
+    
+    // Case-insensitive login lookup
+    @Query("SELECT u FROM User u WHERE LOWER(u.login) = LOWER(:login)")
+    Optional<User> findByLogin(@Param("login") String login);
 }

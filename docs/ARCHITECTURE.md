@@ -9,7 +9,8 @@ The OKR Tracker follows a modern three-tier architecture with clear separation o
 │                        CLIENT LAYER                              │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │              React Frontend (Vite + TypeScript)          │   │
-│  │  • Components (Dashboard, Hierarchy, Admin, Settings)    │   │
+│  │  • Components (Dashboard, Hierarchy, Mindmap, Gantt,     │   │
+│  │    Admin, Settings)                                       │   │
 │  │  • Services (dataService.ts - single API entry point)    │   │
 │  │  • Keycloak Provider (authentication state)              │   │
 │  └─────────────────────────────────────────────────────────┘   │
@@ -137,7 +138,11 @@ Project.progress = avg(Initiatives)
 4. Backend validates JWT with Keycloak issuer
         │
         ▼
-5. SecurityConfig checks @PreAuthorize permissions
+5. UserService maps JWT email → app user → role permissions
+   (System Administrator gets all permissions automatically)
+        │
+        ▼
+6. SecurityConfig checks @PreAuthorize permissions
 ```
 
 ## Backend Architecture
@@ -156,6 +161,7 @@ com.ccc.okrtracker/
 ├── service/
 │   ├── HierarchyService.java      # OKR CRUD operations
 │   ├── CalculationService.java    # Progress rollup logic
+│   ├── UserService.java           # JWT→permissions mapping, System Admin bypass
 │   ├── ProjectAccessService.java  # User/role project access
 │   └── ImportService.java         # CSV import
 ├── repository/
@@ -204,6 +210,12 @@ ccc-okr-tracker-gemini/
     │   ├── useMindmap.ts          # State management hook
     │   ├── layoutUtils.ts         # Tree layout algorithm
     │   └── styles.ts              # Tailwind classes
+    ├── Gantt/                     # Interactive Gantt chart
+    │   ├── GanttView.tsx          # Main view with toolbar & filters
+    │   ├── CustomTaskList.tsx     # Resizable task list columns
+    │   ├── ObjectiveModal.tsx     # Click-to-view Key Results modal
+    │   ├── useGantt.ts            # State, data transform, handlers
+    │   └── index.tsx              # Module export
     ├── MyObjectives/              # User's assigned objectives
     ├── Admin/
     │   ├── UserManagement.tsx
@@ -226,6 +238,8 @@ ccc-okr-tracker-gemini/
 | `MANAGE_ROLES` | Admin role management |
 | `VIEW_ALL_PROJECTS` | Bypass project-level filtering |
 
+> **System Administrator Bypass:** Users with the "System Administrator" role (`isSystem = true`) automatically receive all permissions (`MANAGE_STRATEGY`, `VIEW_STRATEGY`, `MANAGE_USERS`, `MANAGE_ROLES`) regardless of what's configured in the `role_permissions` table. This is enforced in `UserService.mapJwtToAuthorities()`.
+
 ### Request Authorization
 
 ```java
@@ -243,8 +257,9 @@ Managed by **Liquibase**:
 ```yaml
 # db.changelog-master.yaml
 databaseChangeLog:
-  - include: v1.0.0-initial-schema.yaml    # Base tables
+  - include: v1.0.0-initial-schema.yaml         # Base tables
   - include: v1.1.0-project-access-control.yaml  # Access control
+  - include: v1.2.0-keyresult-duedate.yaml        # KeyResult due date column
 ```
 
 Tables:

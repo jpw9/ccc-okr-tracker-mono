@@ -577,3 +577,7 @@ Server-side error (check server logs).
 | `VIEW_ALL_PROJECTS` | Bypass project filtering |
 | `MANAGE_USERS` | Administer users |
 | `MANAGE_ROLES` | Administer roles |
+
+> **System Administrator Bypass:** The "System Administrator" role (`isSystem = true`) is automatically granted all permissions (`MANAGE_STRATEGY`, `VIEW_STRATEGY`, `MANAGE_USERS`, `MANAGE_ROLES`) regardless of `role_permissions` table entries. Implemented in `UserService.mapJwtToAuthorities()`.
+
+> **Frontend Note:** All `addEntity` endpoints in `dataService.ts` must use the `/api` prefix (e.g., `/api/hierarchy/projects`, `/api/hierarchy/initiatives/{id}/goals`). Missing the prefix results in 403 errors because Spring Security's `anyRequest().denyAll()` catches non-`/api` paths.

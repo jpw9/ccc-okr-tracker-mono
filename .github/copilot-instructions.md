@@ -51,9 +51,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 
 ## Current Focus
 <!-- Update this when starting work on a new screen -->
-**Status:** In Progress - Gantt Chart Implementation
-**Last Updated:** Feb 12, 2026
-**Current Task:** Implementing Admin Gantt Chart view (see `docs/features/GANTT_CHART.md`)
+**Status:** Idle
+**Last Updated:** Feb 13, 2026
+**Current Task:** None - Gantt Chart implementation completed
 **Backlog:** See `docs/BACKLOG.md` for full list
 
 ## Current State / Known Issues
@@ -66,6 +66,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - User Management: Added inactive user toggle and reactivation (Feb 12, 2026)
 - User Management: Fixed createUser to properly handle roles and project assignments (Feb 12, 2026)
 - Deploy script: -BackendOnly flag now skips frontend build (Feb 12, 2026)
+- API routing fix: addEntity endpoints in dataService.ts were missing `/api` prefix, causing 403 on all create operations (Feb 13, 2026)
+- System Administrator role: Now automatically granted all permissions regardless of role_permissions table (Feb 13, 2026)
+- Gantt Chart: Fully implemented with drag-and-drop, filters, objective modal, custom task list (Feb 13, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->
@@ -84,6 +87,22 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - **Key components:** MindmapView, MindmapNode, MindmapControls, useMindmap hook, layoutUtils
 - **Features:** Click nodes to expand/collapse, keyboard shortcuts (E/C/F/?), hover tooltips, project selector dropdown
 - **Implementation notes:** Uses simplebezier edges, custom tree layout algorithm, compact 100x28px nodes, 7px font with text truncation
+
+### Gantt Chart (Completed: Feb 13, 2026)
+- **Spec:** `docs/features/GANTT_CHART.md`
+- **Component:** `components/Gantt/`
+- **Tech Stack:** gantt-task-react, TypeScript, Tailwind CSS
+- **Description:** Interactive Gantt chart showing Objectives on a timeline, grouped by Project → Initiative → Goal hierarchy
+- **Key components:** GanttView, CustomTaskList (resizable columns), ObjectiveModal, useGantt hook
+- **Features:** Drag-and-drop timeline editing (admin-only), project/quarter/year filters, zoom controls (Day/Week/Month/Year), expand/collapse hierarchy, click objective to view Key Results in modal
+- **Access:** Visible to users with VIEW_STRATEGY or MANAGE_STRATEGY; drag-and-drop restricted to System Administrators (isSystem role)
+- **Color coding:** Objective bars colored by parent Goal ID; 10-color palette with transparency for grouping rows
+- **Data flow:** Start date derived from Objective's year+quarter; end date from dueDate; drag updates dueDate and quarter via dataService.updateEntity
+
+### System Administrator Permissions (Completed: Feb 13, 2026)
+- **Component:** `UserService.java` (mapJwtToAuthorities)
+- **Description:** System Administrator role (identified by `role.isSystem = true` and `name = 'System Administrator'`) now automatically receives all application permissions regardless of what's configured in role_permissions table
+- **Permissions granted:** MANAGE_STRATEGY, VIEW_STRATEGY, MANAGE_USERS, MANAGE_ROLES
 
 ## Features in Progress
 <!-- Reference feature specs when implementing -->

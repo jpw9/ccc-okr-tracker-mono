@@ -92,12 +92,15 @@
 ---
 
 ## Gantt Chart
-**Component:** `components/Gantt/` (to be created)
-**Status:** 🔄 In Progress (Started Feb 12, 2026)
+**Component:** `components/Gantt/`
+**Status:** ✅ Complete (Feb 13, 2026)
 **Spec:** `docs/features/GANTT_CHART.md`
 
 ### Bugs
-- [ ] 
+- [x] 🔴 403 error on all create operations (addEntity) → Fixed: dataService.ts addEntity endpoints were missing `/api` prefix (Feb 13, 2026)
+
+### Enhancements
+- [x] 🟡 Full Gantt Chart implementation with drag-and-drop, filters, objective modal, custom task list
 
 ### Enhancements
 - [ ] 
@@ -134,10 +137,10 @@
 **Affects:** Multiple screens
 
 ### Bugs
-- [ ] 
+- [x] 🔴 addEntity endpoints in dataService.ts missing `/api` prefix → All create operations (Project, Initiative, Goal, Objective, KeyResult, ActionItem) returned 403 → Fixed: Added `/api` prefix to all addEntity switch cases (Feb 13, 2026)
 
 ### Enhancements
-- [ ] 
+- [x] 🟠 System Administrator auto-permissions → System Administrator role now automatically receives all permissions (MANAGE_STRATEGY, VIEW_STRATEGY, MANAGE_USERS, MANAGE_ROLES) regardless of role_permissions table entries (Feb 13, 2026)
 
 ---
 
@@ -145,10 +148,10 @@
 **Component:** `ccc-okr-tracker-gemini-backend/`
 
 ### Bugs
-- [ ] 
+- [x] 🔴 System Administrator users getting 403 on protected endpoints → Fixed: UserService.mapJwtToAuthorities now grants all permissions to System Administrator role automatically (Feb 13, 2026)
 
 ### Enhancements
-- [ ] 
+- [x] 🟠 System Administrator permission bypass in UserService.java
 
 ---
 
@@ -157,6 +160,9 @@
 ### February 2026
 | Date | Screen | Type | Description |
 |------|--------|------|-------------|
+| Feb 13 | Gantt Chart | Feature | Fully implemented interactive Gantt Chart with drag-and-drop, filters, objective modal, custom task list |
+| Feb 13 | Global | Bug Fix | Fixed addEntity endpoints missing `/api` prefix causing 403 on all create operations |
+| Feb 13 | Backend API | Enhancement | System Administrator role auto-granted all permissions regardless of role_permissions table |
 | Feb 12 | User Management | Bug Fix | Fixed createUser to handle roles and project assignments |
 | Feb 12 | User Management | Bug Fix | Fixed updateUser to only update non-null fields (partial update) |
 | Feb 12 | User Management | Enhancement | Added "Show inactive users" toggle and reactivation |

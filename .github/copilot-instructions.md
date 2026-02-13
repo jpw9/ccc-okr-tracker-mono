@@ -29,6 +29,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Use `@PreAuthorize` for security checks
 - All entities have `isActive` (soft delete), `createdAt`, `updatedAt`
 - Database changes via Liquibase in `src/main/resources/db/changelog/`
+- All `@OneToMany` collections use `@BatchSize(size = 50)` to prevent N+1 queries
+- `CalculationService` relies on Hibernate dirty-checking within `@Transactional` — do NOT add individual `save()` calls on managed entities
+- Avoid `entityManager.clear()` — use `entityManager.refresh(entity)` for specific entities instead
 
 ## Production Environment
 - **Server**: 10.1.155.29 (SSH user: gitlab1)
@@ -69,6 +72,12 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - API routing fix: addEntity endpoints in dataService.ts were missing `/api` prefix, causing 403 on all create operations (Feb 13, 2026)
 - System Administrator role: Now automatically granted all permissions regardless of role_permissions table (Feb 13, 2026)
 - Gantt Chart: Fully implemented with drag-and-drop, filters, objective modal, custom task list (Feb 13, 2026)
+- Performance: N+1 query fix via `@BatchSize(50)` on all entity collections + `hibernate.default_batch_fetch_size=50` (Feb 13, 2026)
+- Performance: Removed redundant `flush()`, `findById()` re-fetches, and verbose `logger.info()` from all update methods (Feb 13, 2026)
+- Performance: `CalculationService.recalculateProject()` no longer calls individual `save()` on every entity — relies on Hibernate dirty-checking (Feb 13, 2026)
+- Performance: `getAllProjects()` uses `findByIdInAndIsActiveTrue()` instead of loading all projects and filtering in memory (Feb 13, 2026)
+- isActive filtering: Mindmap and Gantt views now filter out soft-deleted entities at all hierarchy levels (Feb 13, 2026)
+- Clear All Filters: Added to Hierarchy and My Objectives filter bars (Feb 13, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->

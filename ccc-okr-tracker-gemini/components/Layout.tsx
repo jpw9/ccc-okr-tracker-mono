@@ -13,12 +13,13 @@ interface LayoutProps {
   setSelectedProjectIds: (ids: number[]) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  defaultSidebarCollapsed: boolean | null;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   children, activeTab, setActiveTab, 
   allProjects, selectedProjectIds, setSelectedProjectIds,
-  searchQuery, setSearchQuery
+  searchQuery, setSearchQuery, defaultSidebarCollapsed
 }) => {
   const { theme } = useTheme();
   // NEW: Get user profile and logout function
@@ -26,8 +27,17 @@ const Layout: React.FC<LayoutProps> = ({
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = React.useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const sidebarPrefApplied = useRef(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  // Apply sidebar collapsed preference from user settings
+  useEffect(() => {
+    if (defaultSidebarCollapsed !== null && !sidebarPrefApplied.current) {
+      sidebarPrefApplied.current = true;
+      setIsSidebarOpen(!defaultSidebarCollapsed);
+    }
+  }, [defaultSidebarCollapsed]);
 
   // Derive display name and initials
   const displayName = userProfile?.firstName || userProfile?.name || 'User';

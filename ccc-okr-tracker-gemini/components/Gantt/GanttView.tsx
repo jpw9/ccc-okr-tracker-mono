@@ -45,8 +45,6 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects, token }) => {
     tasks,
     viewMode,
     setViewMode,
-    selectedProjectId,
-    setSelectedProjectId,
     selectedQuarter,
     setSelectedQuarter,
     selectedYear,
@@ -69,7 +67,6 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects, token }) => {
   };
 
   const activeFilterCount =
-    (selectedProjectId !== null ? 1 : 0) +
     (selectedQuarter !== null ? 1 : 0) +
     (selectedYear !== null ? 1 : 0);
 
@@ -111,19 +108,6 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects, token }) => {
           <div className="flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
 
-            {/* Project Filter */}
-            <select
-              value={selectedProjectId ?? ''}
-              onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
-              className="h-7 text-xs border border-slate-200 rounded-md bg-slate-50 text-slate-700 px-2 pr-6 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 appearance-none cursor-pointer"
-              style={selectStyle}
-            >
-              <option value="">All Projects</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
-            </select>
-
             {/* Year Filter */}
             <select
               value={selectedYear ?? ''}
@@ -152,7 +136,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects, token }) => {
 
             {activeFilterCount > 0 && (
               <button
-                onClick={() => { setSelectedProjectId(null); setSelectedQuarter(null); setSelectedYear(null); }}
+                onClick={() => { setSelectedQuarter(null); setSelectedYear(null); }}
                 className="h-7 px-2 text-xs text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-md transition-colors font-medium"
               >
                 Clear ({activeFilterCount})

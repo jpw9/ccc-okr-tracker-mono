@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import HierarchyManager from './components/Hierarchy';
@@ -10,7 +10,7 @@ import { UserManagement } from './components/Admin/UserManagement';
 import { RoleManagement } from './components/Admin/RoleManagement';
 import { ThemeProvider } from './components/ThemeContext';
 import * as DataService from './services/dataService';
-import { Project } from './types';
+import { Project, UserPreferences } from './types';
 import { KeycloakProvider, useAuth } from './KeycloakProvider';
 
 // New protected content wrapper, previously the default export of App.tsx
@@ -26,9 +26,14 @@ const ProtectedAppContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);
 
+  // User Preferences State
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>({});
+  const [defaultSidebarCollapsed, setDefaultSidebarCollapsed] = useState<boolean | null>(null);
+  const prefsAppliedRef = useRef(false);
+
   // MODIFIED: refreshData now uses token
   const refreshData = useCallback(async () => {
-    if (!token) return; // Should not happen if authenticated, but for safety
+    if (!token) return;
     try {
         const data = await DataService.getProjects(token);
         setProjects([...data]); 
@@ -38,14 +43,51 @@ const ProtectedAppContent: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
-    // Only fetch data once token is available and authenticated state is confirmed
     if (token) {
         (async () => {
-            await refreshData();
+            // Fetch projects and preferences in parallel
+            const [, prefs] = await Promise.all([
+                refreshData(),
+                DataService.getUserPreferences(token).catch(() => ({} as UserPreferences)),
+            ]);
+            setUserPreferences(prefs);
             setLoading(false);
         })();
     }
   }, [token, refreshData]);
+
+  // Apply preferences once after initial load
+  useEffect(() => {
+    if (loading || prefsAppliedRef.current || projects.length === 0) return;
+    prefsAppliedRef.current = true;
+
+    // Apply default project
+    if (userPreferences.defaultProjectId) {
+        const projId = Number(userPreferences.defaultProjectId);
+        if (projects.some(p => p.id === projId && p.isActive)) {
+            setSelectedProjectIds([projId]);
+        }
+    }
+
+    // Apply default landing page
+    if (userPreferences.defaultLandingPage) {
+        setActiveTab(userPreferences.defaultLandingPage);
+    }
+
+    // Apply sidebar collapsed state
+    if (userPreferences.sidebarCollapsed !== undefined) {
+        setDefaultSidebarCollapsed(userPreferences.sidebarCollapsed === 'true');
+    }
+  }, [loading, projects, userPreferences]);
+
+  // Callback when user saves preferences from Settings page
+  const handlePreferencesChanged = useCallback((prefs: UserPreferences) => {
+    setUserPreferences(prefs);
+    // Apply sidebar preference immediately
+    if (prefs.sidebarCollapsed !== undefined) {
+        setDefaultSidebarCollapsed(prefs.sidebarCollapsed === 'true');
+    }
+  }, []);
 
   // --- Filtering Logic (Remains mostly unchanged) ---
   const filteredProjects = useMemo(() => {
@@ -114,9 +156,9 @@ const ProtectedAppContent: React.FC = () => {
           />
         );
       case 'mindmap':
-        return <Mindmap projects={projects} />;
+        return <Mindmap projects={filteredProjects} />;
       case 'gantt':
-        return <GanttView projects={projects} token={token || ''} />;
+        return <GanttView projects={filteredProjects} token={token || ''} />;
       case 'my-objectives':
         // FIX: Use the application user's login ID (e.g., "admin_user") if available, otherwise fallback to the Keycloak login/email.
         const assignedLogin = appUser?.login || currentUserLogin || '';
@@ -126,8 +168,7 @@ const ProtectedAppContent: React.FC = () => {
       case 'role-management':
         return <RoleManagement searchQuery={searchQuery} {...tokenProp} />;
       case 'settings':
-        // MODIFIED: Pass the token to SettingsView
-        return <Settings refreshData={refreshData} {...tokenProp} />;
+        return <Settings refreshData={refreshData} allProjects={projects} onPreferencesChanged={handlePreferencesChanged} {...tokenProp} />;
       default:
         return <Dashboard projects={filteredProjects} />;
     }
@@ -142,6 +183,7 @@ const ProtectedAppContent: React.FC = () => {
       setSelectedProjectIds={setSelectedProjectIds}
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      defaultSidebarCollapsed={defaultSidebarCollapsed}
     >
       {renderContent()}
     </Layout>

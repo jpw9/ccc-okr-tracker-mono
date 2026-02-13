@@ -1,7 +1,7 @@
 // File: jpw9/ccc-okr-tracker-gemini/jpw9-ccc-okr-tracker-gemini-1ed46e9b04cb0ee78a5dd0db3d497ccf40d13ba1/services/dataService.ts
 
 import { 
-  Project, User, Role
+  Project, User, Role, UserPreferences
 } from '../types';
 
 // MODIFIED: Read the API URL from the VITE environment variable set in .env files.
@@ -358,4 +358,17 @@ export const restoreItem = async (type: string, id: number, token: string): Prom
 export const getCurrentAppUser = async (token: string): Promise<User> => {
     // Calls the new /api/user/me endpoint
     return await api('/api/user/me', { method: 'GET' }, token);
+};
+
+// --- USER PREFERENCES ---
+
+export const getUserPreferences = async (token: string): Promise<UserPreferences> => {
+    return await api('/api/user/preferences', { method: 'GET' }, token);
+};
+
+export const updateUserPreferences = async (preferences: UserPreferences, token: string): Promise<UserPreferences> => {
+    return await api('/api/user/preferences', {
+        method: 'PUT',
+        body: JSON.stringify(preferences),
+    }, token);
 };

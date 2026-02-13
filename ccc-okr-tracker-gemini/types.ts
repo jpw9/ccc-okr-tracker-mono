@@ -121,3 +121,10 @@ export interface AppTheme {
   primaryColor: string; // Hex
   borderRadius: string; // 'sm', 'md', 'lg'
 }
+
+// --- USER PREFERENCES ---
+export interface UserPreferences {
+  defaultProjectId?: string;    // Project ID to auto-select on login (string because stored as text)
+  defaultLandingPage?: string;  // Tab ID: 'dashboard' | 'projects' | 'mindmap' | 'gantt' | 'my-objectives'
+  sidebarCollapsed?: string;    // 'true' | 'false'
+}

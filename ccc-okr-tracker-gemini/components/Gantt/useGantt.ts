@@ -56,7 +56,6 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
   const [selectedObjective, setSelectedObjective] = useState<ObjectiveMetadata | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectedQuarter, setSelectedQuarter] = useState<Quarter | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(new Date().getFullYear());
 
@@ -87,19 +86,13 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
     });
   }, []);
 
-  // Apply project filter
-  const filteredProjects = useMemo(() => {
-    if (selectedProjectId === null) return projects;
-    return projects.filter(p => p.id === selectedProjectId);
-  }, [projects, selectedProjectId]);
-
   // Flatten hierarchy into gantt-task-react Task array
   const { tasks, objectiveMap } = useMemo(() => {
     const taskList: Task[] = [];
     const objMap = new Map<string, ObjectiveMetadata>();
     const now = new Date();
 
-    filteredProjects.forEach(project => {
+    projects.forEach(project => {
       const projectId = `project-${project.id}`;
       const projectHidden = !expandedIds.has(projectId);
 
@@ -266,7 +259,7 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
     });
 
     return { tasks: taskList, objectiveMap: objMap };
-  }, [filteredProjects, expandedIds, isAdmin, selectedQuarter, selectedYear]);
+  }, [projects, expandedIds, isAdmin, selectedQuarter, selectedYear]);
 
   // Handle date change from drag-and-drop
   const handleDateChange = useCallback(async (task: Task) => {
@@ -313,8 +306,6 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
     tasks,
     viewMode,
     setViewMode,
-    selectedProjectId,
-    setSelectedProjectId,
     selectedQuarter,
     setSelectedQuarter,
     selectedYear,

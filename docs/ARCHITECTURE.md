@@ -167,12 +167,14 @@ com.ccc.okrtracker/
 ├── repository/
 │   ├── ProjectRepository.java     # JPA repository
 │   ├── UserRepository.java        # JPA repository
+│   ├── UserPreferenceRepository.java # User preferences
 │   ├── UserProjectRepository.java # JdbcTemplate (extra columns)
 │   └── RoleProjectRepository.java # JdbcTemplate (scoping)
 ├── entity/
 │   ├── BaseEntity.java            # Common audit fields
 │   ├── Project.java
 │   ├── User.java
+│   ├── UserPreference.java        # Per-user key-value settings
 │   ├── Role.java
 │   └── ... (all hierarchy entities)
 ├── config/
@@ -260,6 +262,7 @@ databaseChangeLog:
   - include: v1.0.0-initial-schema.yaml         # Base tables
   - include: v1.1.0-project-access-control.yaml  # Access control
   - include: v1.2.0-keyresult-duedate.yaml        # KeyResult due date column
+  - include: v1.3.0-user-preferences.yaml         # User preferences (key-value)
 ```
 
 Tables:
@@ -268,3 +271,4 @@ Tables:
 - `user_roles` (M:N join)
 - `user_projects` (M:N with access_level)
 - `role_projects` (M:N for scoping)
+- `user_preferences` (user_id + preference_key → preference_value)

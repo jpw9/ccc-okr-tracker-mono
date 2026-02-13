@@ -78,6 +78,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Performance: `getAllProjects()` uses `findByIdInAndIsActiveTrue()` instead of loading all projects and filtering in memory (Feb 13, 2026)
 - isActive filtering: Mindmap and Gantt views now filter out soft-deleted entities at all hierarchy levels (Feb 13, 2026)
 - Clear All Filters: Added to Hierarchy and My Objectives filter bars (Feb 13, 2026)
+- User Preferences: Per-user settings stored in DB — default project, default landing page, sidebar collapsed state (Feb 13, 2026)
+- Gantt Chart: Removed local project filter — now uses global header filter only; keeps Year/Quarter filters (Feb 13, 2026)
+- Mindmap & Gantt: Now respect global project filter (filteredProjects instead of unfiltered projects) (Feb 13, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->
@@ -103,7 +106,7 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - **Tech Stack:** gantt-task-react, TypeScript, Tailwind CSS
 - **Description:** Interactive Gantt chart showing Objectives on a timeline, grouped by Project → Initiative → Goal hierarchy
 - **Key components:** GanttView, CustomTaskList (resizable columns), ObjectiveModal, useGantt hook
-- **Features:** Drag-and-drop timeline editing (admin-only), project/quarter/year filters, zoom controls (Day/Week/Month/Year), expand/collapse hierarchy, click objective to view Key Results in modal
+- **Features:** Drag-and-drop timeline editing (admin-only), quarter/year filters (project filter via global header), zoom controls (Day/Week/Month/Year), expand/collapse hierarchy, click objective to view Key Results in modal
 - **Access:** Visible to users with VIEW_STRATEGY or MANAGE_STRATEGY; drag-and-drop restricted to System Administrators (isSystem role)
 - **Color coding:** Objective bars colored by parent Goal ID; 10-color palette with transparency for grouping rows
 - **Data flow:** Start date derived from Objective's year+quarter; end date from dueDate; drag updates dueDate and quarter via dataService.updateEntity
@@ -112,6 +115,18 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - **Component:** `UserService.java` (mapJwtToAuthorities)
 - **Description:** System Administrator role (identified by `role.isSystem = true` and `name = 'System Administrator'`) now automatically receives all application permissions regardless of what's configured in role_permissions table
 - **Permissions granted:** MANAGE_STRATEGY, VIEW_STRATEGY, MANAGE_USERS, MANAGE_ROLES
+
+### User Preferences (Completed: Feb 13, 2026)
+- **Component:** `components/Settings/SettingsView.tsx` (frontend), `UserController.java` + `UserPreference.java` (backend)
+- **Description:** Per-user preferences stored in `user_preferences` table, fetched on login and applied automatically
+- **Backend:** New `UserPreference` entity (key-value per user), `UserPreferenceRepository`, endpoints `GET/PUT /api/user/preferences`
+- **Migration:** `v1.3.0-user-preferences.yaml` — creates `user_preferences` table with FK to `app_users`
+- **Preferences available:**
+  - **Default Project** — auto-select a project on login (global header filter)
+  - **Default Landing Page** — choose which tab opens on login (dashboard, projects, mindmap, gantt, my-objectives)
+  - **Sidebar Default State** — expanded or collapsed on login
+- **Data flow:** `App.tsx` fetches preferences in parallel with projects on login → applies once after initial load → `SettingsView` saves via PUT and notifies parent via `onPreferencesChanged` callback
+- **Gantt Chart fix:** Removed redundant local project filter; Gantt and Mindmap now use `filteredProjects` from global header filter
 
 ## Features in Progress
 <!-- Reference feature specs when implementing -->

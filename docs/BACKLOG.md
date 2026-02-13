@@ -69,13 +69,13 @@
 
 ## Settings
 **Component:** `components/Settings/`
-**Status:** Not reviewed
+**Status:** ✅ User Preferences complete (Feb 13, 2026)
 
 ### Bugs
 - [ ] 
 
 ### Enhancements
-- [ ] 
+- [x] 🟡 User Preferences: Default project, default landing page, sidebar collapsed state — stored per-user in DB, applied on login
 
 ---
 
@@ -160,6 +160,8 @@
 ### February 2026
 | Date | Screen | Type | Description |
 |------|--------|------|-------------|
+| Feb 13 | Settings | Feature | User Preferences: default project, default landing page, sidebar state — per-user DB storage, applied on login |
+| Feb 13 | Gantt Chart | Enhancement | Removed local project filter; Gantt & Mindmap now respect global header project filter |
 | Feb 13 | Gantt Chart | Feature | Fully implemented interactive Gantt Chart with drag-and-drop, filters, objective modal, custom task list |
 | Feb 13 | Global | Bug Fix | Fixed addEntity endpoints missing `/api` prefix causing 403 on all create operations |
 | Feb 13 | Backend API | Enhancement | System Administrator role auto-granted all permissions regardless of role_permissions table |

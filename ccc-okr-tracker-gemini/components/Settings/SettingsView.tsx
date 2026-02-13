@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { styles } from './styles';
 import { useSettings } from './useSettings';
-import { Palette, Archive, X, RotateCcw, Trash2, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Palette, Archive, X, RotateCcw, Trash2, Upload, AlertCircle, CheckCircle, SlidersHorizontal, Save, Loader2 } from 'lucide-react';
 import * as DataService from '../../services/dataService';
+import { Project, UserPreferences } from '../../types';
 
 interface SettingsViewProps {
     refreshData: () => Promise<void>;
-    token: string; // NEW PROP
+    token: string;
+    allProjects: Project[];
+    onPreferencesChanged: (prefs: UserPreferences) => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ refreshData, token }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ refreshData, token, allProjects, onPreferencesChanged }) => {
     const { theme, updateTheme, colors } = useSettings();
     const [isArchiveOpen, setIsArchiveOpen] = useState(false);
     const [archivedItems, setArchivedItems] = useState<any[]>([]);
@@ -19,6 +22,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ refreshData, token }
     const [importLoading, setImportLoading] = useState(false);
     const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // --- User Preferences State ---
+    const [preferences, setPreferences] = useState<UserPreferences>({});
+    const [prefsLoading, setPrefsLoading] = useState(true);
+    const [prefsSaving, setPrefsSaving] = useState(false);
+    const [prefsMessage, setPrefsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [prefsDirty, setPrefsDirty] = useState(false);
+
+    // Landing page options
+    const landingPages = [
+        { value: '', label: 'Default (Dashboard)' },
+        { value: 'dashboard', label: 'Executive Dashboard' },
+        { value: 'projects', label: 'Strategy & OKRs' },
+        { value: 'mindmap', label: 'Mindmap' },
+        { value: 'gantt', label: 'Gantt Chart' },
+        { value: 'my-objectives', label: 'My Objectives' },
+    ];
+
+    // Fetch preferences on mount
+    useEffect(() => {
+        if (!token) return;
+        (async () => {
+            try {
+                const prefs = await DataService.getUserPreferences(token);
+                setPreferences(prefs);
+            } catch (e) {
+                console.warn('Could not load preferences:', e);
+            } finally {
+                setPrefsLoading(false);
+            }
+        })();
+    }, [token]);
+
+    const handlePrefChange = (key: keyof UserPreferences, value: string) => {
+        setPreferences(prev => ({ ...prev, [key]: value }));
+        setPrefsDirty(true);
+        setPrefsMessage(null);
+    };
+
+    const handleSavePreferences = async () => {
+        if (!token) return;
+        setPrefsSaving(true);
+        setPrefsMessage(null);
+        try {
+            const updated = await DataService.updateUserPreferences(preferences, token);
+            setPreferences(updated);
+            setPrefsDirty(false);
+            setPrefsMessage({ type: 'success', text: 'Preferences saved successfully.' });
+            onPreferencesChanged(updated);
+        } catch (e: any) {
+            setPrefsMessage({ type: 'error', text: e.message || 'Failed to save preferences.' });
+        } finally {
+            setPrefsSaving(false);
+        }
+    };
 
     // MODIFIED: fetchArchive uses useCallback and token dependency
     const fetchArchive = useCallback(async () => {
@@ -112,6 +170,113 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ refreshData, token }
                             ))}
                         </div>
                         <p className={styles.theme.helpText}>This color will be applied to buttons, active states, and charts throughout the application.</p>
+                    </div>
+                </div>
+
+                {/* User Preferences Section */}
+                <div className={styles.section.wrapper}>
+                    <div className={styles.section.header}>
+                        <div className={styles.section.iconBox("bg-violet-50", "text-violet-600")}><SlidersHorizontal className="w-5 h-5"/></div>
+                        <h3 className={styles.section.title}>User Preferences</h3>
+                    </div>
+                    <div className={styles.section.contentPadded}>
+                        {prefsLoading ? (
+                            <div className="flex items-center justify-center py-6 text-slate-400">
+                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                <span className="text-sm">Loading preferences...</span>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Default Project */}
+                                <div className={styles.data.row}>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={styles.data.rowTitle}>Default Project</p>
+                                        <p className={styles.data.rowDesc}>Auto-select this project when you log in. Leave empty to show all projects.</p>
+                                    </div>
+                                    <select
+                                        value={preferences.defaultProjectId || ''}
+                                        onChange={(e) => handlePrefChange('defaultProjectId', e.target.value)}
+                                        className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+                                    >
+                                        <option value="">All Projects</option>
+                                        {allProjects.filter(p => p.isActive).map(p => (
+                                            <option key={p.id} value={String(p.id)}>{p.title}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Default Landing Page */}
+                                <div className={styles.data.row}>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={styles.data.rowTitle}>Default Landing Page</p>
+                                        <p className={styles.data.rowDesc}>Choose which page opens when you log in to the application.</p>
+                                    </div>
+                                    <select
+                                        value={preferences.defaultLandingPage || ''}
+                                        onChange={(e) => handlePrefChange('defaultLandingPage', e.target.value)}
+                                        className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+                                    >
+                                        {landingPages.map(page => (
+                                            <option key={page.value} value={page.value}>{page.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Sidebar Default State */}
+                                <div className={styles.data.row}>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={styles.data.rowTitle}>Sidebar Default State</p>
+                                        <p className={styles.data.rowDesc}>Choose whether the sidebar starts expanded or collapsed on login.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handlePrefChange('sidebarCollapsed', 'false')}
+                                            className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                                preferences.sidebarCollapsed !== 'true'
+                                                    ? 'bg-brand-50 text-brand-700 border-brand-200 shadow-sm'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            Expanded
+                                        </button>
+                                        <button
+                                            onClick={() => handlePrefChange('sidebarCollapsed', 'true')}
+                                            className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                                preferences.sidebarCollapsed === 'true'
+                                                    ? 'bg-brand-50 text-brand-700 border-brand-200 shadow-sm'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            Collapsed
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Save Button & Message */}
+                                <div className="flex items-center justify-between pt-2">
+                                    <div>
+                                        {prefsMessage && (
+                                            <div className={`flex items-center gap-2 text-sm ${prefsMessage.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {prefsMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                                <span className="font-medium">{prefsMessage.text}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={handleSavePreferences}
+                                        disabled={!prefsDirty || prefsSaving}
+                                        className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                            prefsDirty
+                                                ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md shadow-brand-500/20'
+                                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        {prefsSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        {prefsSaving ? 'Saving...' : 'Save Preferences'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

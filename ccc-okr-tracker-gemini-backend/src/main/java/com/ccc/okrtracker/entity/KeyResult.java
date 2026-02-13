@@ -3,6 +3,7 @@ package com.ccc.okrtracker.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,5 +30,6 @@ public class KeyResult extends BaseEntity {
 
     @OneToMany(mappedBy = "keyResult", cascade = CascadeType.ALL)
     @OrderBy("id ASC") // Maintain stable sort order by ID (creation order)
+    @BatchSize(size = 50)
     private List<ActionItem> actionItems = new ArrayList<>();
 }

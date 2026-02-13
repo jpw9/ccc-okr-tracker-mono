@@ -99,9 +99,7 @@ public class HierarchyService {
             return List.of();
         }
         
-        return projectRepo.findAll().stream()
-            .filter(p -> p.getIsActive() != null && p.getIsActive() && accessibleIds.contains(p.getId()))
-            .collect(Collectors.toList());
+        return projectRepo.findByIdInAndIsActiveTrue(accessibleIds);
     }
 
     /**
@@ -185,25 +183,20 @@ public class HierarchyService {
     public Project updateProject(Long id, Project updates) {
         Project p = projectRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
-        // Apply updates
         Optional.ofNullable(updates.getTitle()).ifPresent(p::setTitle);
         Optional.ofNullable(updates.getDescription()).ifPresent(p::setDescription);
-        // Progress can be set manually, but usually is recalculated
         Optional.ofNullable(updates.getProgress()).ifPresent(p::setProgress);
 
-        // Handle Soft Delete/Restore Logic
         if (updates.getIsActive() != null && !updates.getIsActive()) {
             p.softDelete(getCurrentUserLogin());
-            // CRITICAL FIX: Cascade soft delete to all children
             cascadeSoftDelete(p, false);
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
             p.restore();
         }
 
-        Project saved = projectRepo.save(p);
-        projectRepo.flush();  // Ensure changes are persisted before recalculation
+        projectRepo.save(p);
         calculationService.recalculateProject(id);
-        return projectRepo.findById(id).orElseThrow();  // Re-fetch after recalculation
+        return p;
     }
 
     @Transactional
@@ -216,24 +209,20 @@ public class HierarchyService {
 
         if (updates.getIsActive() != null && !updates.getIsActive()) {
             init.softDelete(getCurrentUserLogin());
-            // FIX: Cascade soft delete to children of Initiative
             cascadeSoftDelete(init, false);
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
             init.restore();
         }
 
-        StrategicInitiative saved = initRepo.save(init);
-        initRepo.flush();  // Ensure changes are persisted before recalculation
-        Long projectId = saved.getProject().getId();
+        initRepo.save(init);
+        Long projectId = init.getProject().getId();
         calculationService.recalculateProject(projectId);
-        return initRepo.findById(id).orElseThrow();  // Re-fetch after recalculation
+        return init;
     }
 
     @Transactional
     public Goal updateGoal(Long id, Goal updates) {
         Goal g = goalRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
-
-        logger.info("=== UPDATE GOAL START: id={}, isActive={} ===", id, updates.getIsActive());
 
         Optional.ofNullable(updates.getTitle()).ifPresent(g::setTitle);
         Optional.ofNullable(updates.getDescription()).ifPresent(g::setDescription);
@@ -241,30 +230,22 @@ public class HierarchyService {
 
         // Get projectId BEFORE soft delete to avoid detached entity issues
         Long projectId = g.getInitiative().getProject().getId();
-        logger.info("Goal id={} belongs to project id={}", id, projectId);
 
         if (updates.getIsActive() != null && !updates.getIsActive()) {
-            logger.info("Soft-deleting Goal id={}", id);
             g.softDelete(getCurrentUserLogin());
-            // FIX: Cascade soft delete to children of Goal
             cascadeSoftDelete(g, false);
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
             g.restore();
         }
 
-        Goal saved = goalRepo.save(g);
-        goalRepo.flush();  // Ensure changes are persisted before recalculation
-        logger.info("Goal id={} saved and flushed, isActive={}", id, saved.getIsActive());
-        logger.info("Triggering recalculation for project id={}", projectId);
+        goalRepo.save(g);
         calculationService.recalculateProject(projectId);
-        return goalRepo.findById(id).orElseThrow();  // Re-fetch after recalculation
+        return g;
     }
 
     @Transactional
     public Objective updateObjective(Long id, Objective updates) {
         Objective obj = objectiveRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Objective not found"));
-
-        logger.info("=== UPDATE OBJECTIVE START: id={}, isActive={} ===", id, updates.getIsActive());
 
         Optional.ofNullable(updates.getTitle()).ifPresent(obj::setTitle);
         Optional.ofNullable(updates.getDescription()).ifPresent(obj::setDescription);
@@ -276,32 +257,23 @@ public class HierarchyService {
 
         // Get projectId BEFORE soft delete to avoid detached entity issues
         Long projectId = obj.getGoal().getInitiative().getProject().getId();
-        logger.info("Objective id={} belongs to project id={}", id, projectId);
 
         if (updates.getIsActive() != null && !updates.getIsActive()) {
-            logger.info("Soft-deleting Objective id={}", id);
             obj.softDelete(getCurrentUserLogin());
-            // FIX: Cascade soft delete to children of Objective
             cascadeSoftDelete(obj, false);
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
             obj.restore();
         }
 
-        Objective saved = objectiveRepo.save(obj);
-        objectiveRepo.flush();  // Ensure changes are persisted before recalculation
-        logger.info("Objective id={} saved and flushed, isActive={}", id, saved.getIsActive());
-        logger.info("Triggering recalculation for project id={}", projectId);
+        objectiveRepo.save(obj);
         calculationService.recalculateProject(projectId);
-        return objectiveRepo.findById(id).orElseThrow();  // Re-fetch after recalculation
+        return obj;
     }
 
     @Transactional
     public KeyResult updateKeyResult(Long id, KeyResult updates) {
         KeyResult kr = krRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Key Result not found"));
 
-        logger.info("=== UPDATE KEY RESULT START: id={}, isActive={} ===", id, updates.getIsActive());
-
-        // Store original values before updates
         Integer originalProgress = kr.getProgress();
         
         Optional.ofNullable(updates.getTitle()).ifPresent(kr::setTitle);
@@ -310,29 +282,21 @@ public class HierarchyService {
         Optional.ofNullable(updates.getDueDate()).ifPresent(kr::setDueDate);
         Optional.ofNullable(updates.getProgress()).ifPresent(kr::setProgress);
         
-        // Track if we need to recalculation
         boolean needsRecalculation = false;
         
-        // Determine if progress was manually changed
         boolean progressChanged = updates.getProgress() != null && 
                                  !updates.getProgress().equals(originalProgress);
         
         if (progressChanged) {
-            // Only progress was changed directly - lock it as manually set
             kr.setManualProgressSet(true);
             needsRecalculation = true;
-            logger.info("KeyResult id={}: progress manually changed from {} to {}", id, originalProgress, kr.getProgress());
         }
 
         // Get projectId BEFORE soft delete to avoid detached entity issues
         Long projectId = kr.getObjective().getGoal().getInitiative().getProject().getId();
-        Long krId = kr.getId();
-        logger.info("KeyResult id={} belongs to project id={}", krId, projectId);
 
         if (updates.getIsActive() != null && !updates.getIsActive()) {
-            logger.info("Soft-deleting KeyResult id={}", krId);
             kr.softDelete(getCurrentUserLogin());
-            // FIX: Cascade soft delete to children of Key Result
             cascadeSoftDelete(kr, false);
             needsRecalculation = true;
         } else if (updates.getIsActive() != null && updates.getIsActive()) {
@@ -340,53 +304,34 @@ public class HierarchyService {
             needsRecalculation = true;
         }
 
-        KeyResult saved = krRepo.save(kr);
-        krRepo.flush();  // Ensure KR update is persisted before recalculation
-        logger.info("KeyResult id={} saved and flushed, isActive={}, needsRecalculation={}", krId, saved.getIsActive(), needsRecalculation);
+        krRepo.save(kr);
         
         if (needsRecalculation) {
-            logger.info("Triggering recalculation for project id={}", projectId);
             calculationService.recalculateProject(projectId);
         }
         
-        // Re-fetch KR after recalculation to ensure it has latest calculated progress
-        return krRepo.findById(krId).orElseThrow(() -> new ResourceNotFoundException("Key Result not found"));
+        return kr;
     }
 
     @Transactional
     public ActionItem updateActionItem(Long id, ActionItem updates) {
         ActionItem ai = aiRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Action Item not found"));
-
-        logger.info("Updating ActionItem id={}, incoming isCompleted={}, incoming progress={}", 
-                    id, updates.getIsCompleted(), updates.getProgress());
-        logger.info("Current state: isCompleted={}, progress={}", ai.getIsCompleted(), ai.getProgress());
         
         Optional.ofNullable(updates.getTitle()).ifPresent(ai::setTitle);
         Optional.ofNullable(updates.getDescription()).ifPresent(ai::setDescription);
         Optional.ofNullable(updates.getDueDate()).ifPresent(ai::setDueDate);
         Optional.ofNullable(updates.getAssignee()).ifPresent(ai::setAssignee);
 
-        // Determine if this is a "Mark as Done" operation vs a full edit
-        // Mark as Done: sends isCompleted change but progress is 0 (default)
-        // Edit dialog: sends progress > 0 OR progress explicitly set to a value
         Integer incomingProgress = updates.getProgress();
         Boolean incomingIsCompleted = updates.getIsCompleted();
         
-        // If progress is explicitly provided and non-zero, it's from the edit dialog
         if (incomingProgress != null && incomingProgress > 0) {
-            // Edit dialog scenario: progress is source of truth
             ai.setProgress(incomingProgress);
-            // Sync isCompleted based on progress (100 = completed)
             ai.setIsCompleted(incomingProgress >= 100);
-            logger.info("Edit dialog mode: using explicit progress={}, setting isCompleted={}", incomingProgress, ai.getIsCompleted());
         } else if (incomingIsCompleted != null) {
-            // Mark as Done scenario: isCompleted is source of truth, auto-set progress
             ai.setIsCompleted(incomingIsCompleted);
             ai.setProgress(incomingIsCompleted ? 100 : 0);
-            logger.info("Mark as Done mode: setting isCompleted={}, progress={}", incomingIsCompleted, ai.getProgress());
         }
-        
-        logger.info("After update: isCompleted={}, progress={}", ai.getIsCompleted(), ai.getProgress());
 
         if (updates.getIsActive() != null && !updates.getIsActive()) {
             ai.softDelete(getCurrentUserLogin());
@@ -394,48 +339,31 @@ public class HierarchyService {
             ai.restore();
         }
 
-        // Final validation: Ensure consistency between progress and isCompleted before saving
+        // Final consistency check
         if (ai.getProgress() != null && ai.getProgress() == 100 && !Boolean.TRUE.equals(ai.getIsCompleted())) {
-            logger.info("Fixing inconsistency: progress=100 but isCompleted=false, setting isCompleted=true");
             ai.setIsCompleted(true);
         } else if (ai.getProgress() != null && ai.getProgress() < 100 && Boolean.TRUE.equals(ai.getIsCompleted())) {
-            logger.info("Fixing inconsistency: progress<100 but isCompleted=true, setting isCompleted=false");
             ai.setIsCompleted(false);
         }
 
-        // Save the KeyResult ID BEFORE saving the ActionItem (in case relationship gets detached)
+        // Cache KR ID and project ID before saving
         Long krId = ai.getKeyResult() != null ? ai.getKeyResult().getId() : null;
-        logger.info("KeyResult ID before save: {}", krId);
 
-        ActionItem savedAi = aiRepo.save(ai);
-        aiRepo.flush();  // Ensure action item is persisted before recalculation
-        logger.info("Saved ActionItem id={}, isCompleted={}, progress={}, isActive={}", 
-                    savedAi.getId(), savedAi.getIsCompleted(), savedAi.getProgress(), savedAi.getIsActive());
+        aiRepo.save(ai);
         
-        // When action item is updated (including soft-delete), recalculate the project
         if (krId != null) {
-            // Re-fetch KR to ensure we have a fresh instance
             KeyResult kr = krRepo.findById(krId).orElse(null);
-            logger.info("KeyResult after re-fetch: {}", kr != null ? "found kr.id=" + kr.getId() : "NULL");
-            
             if (kr != null) {
                 // UNLOCK the KR so it recalculates from action items
                 kr.setManualProgressSet(false);
                 krRepo.save(kr);
-                krRepo.flush(); 
                 
-                // Navigate to Project ID
                 Long projectId = kr.getObjective().getGoal().getInitiative().getProject().getId();
-                logger.info("Triggering recalculation for project id={}", projectId);
                 calculationService.recalculateProject(projectId);
-                
-                // Re-fetch action item after recalculation to ensure it's attached and has latest data
-                savedAi = aiRepo.findById(savedAi.getId()).orElseThrow();
-                logger.info("Final ActionItem after recalc: id={}, isCompleted={}, progress={}", savedAi.getId(), savedAi.getIsCompleted(), savedAi.getProgress());
             }
         }
         
-        return savedAi;
+        return ai;
     }
 
     // --- New Recursive Helper for Soft Delete/Restore ---

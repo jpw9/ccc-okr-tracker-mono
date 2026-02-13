@@ -30,6 +30,7 @@ export function buildLayoutTree(
 ): LayoutNode {
     const projectNodeId = nodeId('project', project.id);
     const isExpanded = expandedNodes.has(projectNodeId);
+    const activeInitiatives = project.initiatives.filter(i => i.isActive);
     
     const projectNode: LayoutNode = {
         id: projectNodeId,
@@ -38,7 +39,7 @@ export function buildLayoutTree(
             label: project.title,
             level: 'project',
             progress: project.progress,
-            hasChildren: project.initiatives.length > 0,
+            hasChildren: activeInitiatives.length > 0,
             isExpanded,
         },
         children: [],
@@ -46,9 +47,11 @@ export function buildLayoutTree(
     };
 
     if (maxDepth > 1 && isExpanded) {
-        projectNode.children = project.initiatives.map(initiative => 
-            buildInitiativeNode(initiative, maxDepth, expandedNodes, 2)
-        );
+        projectNode.children = project.initiatives
+            .filter(initiative => initiative.isActive)
+            .map(initiative => 
+                buildInitiativeNode(initiative, maxDepth, expandedNodes, 2)
+            );
     }
 
     // Calculate subtree height
@@ -66,6 +69,7 @@ function buildInitiativeNode(
     const id = nodeId('initiative', initiative.id);
     const isExpanded = expandedNodes.has(id);
     
+    const activeGoals = initiative.goals.filter(g => g.isActive);
     const node: LayoutNode = {
         id,
         data: {
@@ -73,7 +77,7 @@ function buildInitiativeNode(
             label: initiative.title,
             level: 'strategicInitiative',
             progress: initiative.progress,
-            hasChildren: initiative.goals.length > 0,
+            hasChildren: activeGoals.length > 0,
             isExpanded,
         },
         children: [],
@@ -81,7 +85,7 @@ function buildInitiativeNode(
     };
 
     if (currentDepth < maxDepth && isExpanded) {
-        node.children = initiative.goals.map(goal => 
+        node.children = activeGoals.map(goal => 
             buildGoalNode(goal, maxDepth, expandedNodes, currentDepth + 1)
         );
     }
@@ -99,6 +103,7 @@ function buildGoalNode(
     const id = nodeId('goal', goal.id);
     const isExpanded = expandedNodes.has(id);
     
+    const activeObjectives = goal.objectives.filter(o => o.isActive);
     const node: LayoutNode = {
         id,
         data: {
@@ -106,7 +111,7 @@ function buildGoalNode(
             label: goal.title,
             level: 'goal',
             progress: goal.progress,
-            hasChildren: goal.objectives.length > 0,
+            hasChildren: activeObjectives.length > 0,
             isExpanded,
         },
         children: [],
@@ -114,7 +119,7 @@ function buildGoalNode(
     };
 
     if (currentDepth < maxDepth && isExpanded) {
-        node.children = goal.objectives.map(objective => 
+        node.children = activeObjectives.map(objective => 
             buildObjectiveNode(objective, maxDepth, expandedNodes, currentDepth + 1)
         );
     }
@@ -132,6 +137,7 @@ function buildObjectiveNode(
     const id = nodeId('objective', objective.id);
     const isExpanded = expandedNodes.has(id);
     
+    const activeKeyResults = objective.keyResults.filter(kr => kr.isActive);
     const node: LayoutNode = {
         id,
         data: {
@@ -139,7 +145,7 @@ function buildObjectiveNode(
             label: objective.title,
             level: 'objective',
             progress: objective.progress,
-            hasChildren: objective.keyResults.length > 0,
+            hasChildren: activeKeyResults.length > 0,
             isExpanded,
         },
         children: [],
@@ -147,7 +153,7 @@ function buildObjectiveNode(
     };
 
     if (currentDepth < maxDepth && isExpanded) {
-        node.children = objective.keyResults.map(kr => 
+        node.children = activeKeyResults.map(kr => 
             buildKeyResultNode(kr, maxDepth, expandedNodes, currentDepth + 1)
         );
     }
@@ -165,6 +171,7 @@ function buildKeyResultNode(
     const id = nodeId('keyresult', keyResult.id);
     const isExpanded = expandedNodes.has(id);
     
+    const activeActionItems = keyResult.actionItems.filter(ai => ai.isActive);
     const node: LayoutNode = {
         id,
         data: {
@@ -172,7 +179,7 @@ function buildKeyResultNode(
             label: keyResult.title,
             level: 'keyResult',
             progress: keyResult.progress,
-            hasChildren: keyResult.actionItems.length > 0,
+            hasChildren: activeActionItems.length > 0,
             isExpanded,
         },
         children: [],
@@ -180,7 +187,7 @@ function buildKeyResultNode(
     };
 
     if (currentDepth < maxDepth && isExpanded) {
-        node.children = keyResult.actionItems.map(action => 
+        node.children = activeActionItems.map(action => 
             buildActionItemNode(action)
         );
     }
@@ -287,18 +294,23 @@ export function getAllNodeIdsFromProject(project: Project): string[] {
     const ids: string[] = [nodeId('project', project.id)];
     
     for (const initiative of project.initiatives) {
+        if (!initiative.isActive) continue;
         ids.push(nodeId('initiative', initiative.id));
         
         for (const goal of initiative.goals) {
+            if (!goal.isActive) continue;
             ids.push(nodeId('goal', goal.id));
             
             for (const objective of goal.objectives) {
+                if (!objective.isActive) continue;
                 ids.push(nodeId('objective', objective.id));
                 
                 for (const keyResult of objective.keyResults) {
+                    if (!keyResult.isActive) continue;
                     ids.push(nodeId('keyresult', keyResult.id));
                     
                     for (const action of keyResult.actionItems) {
+                        if (!action.isActive) continue;
                         ids.push(nodeId('action', action.id));
                     }
                 }

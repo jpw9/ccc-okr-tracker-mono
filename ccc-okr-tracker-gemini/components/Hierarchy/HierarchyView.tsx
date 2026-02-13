@@ -11,7 +11,7 @@ import {
     applyProgressRollup,
     useTreeNodeState 
 } from '../shared/TreeViewShared';
-import { ChevronsUp, ChevronsDown, Plus, ZoomIn, ZoomOut, EyeOff, Layers } from 'lucide-react';
+import { ChevronsUp, ChevronsDown, Plus, ZoomIn, ZoomOut, EyeOff, Layers, X } from 'lucide-react';
 
 // --- TYPE DEFINITIONS FOR FILTERING ---
 interface FilterState {
@@ -569,6 +569,18 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
                    >
                        <EyeOff className="w-3.5 h-3.5"/> 
                        <span>Progress</span>
+                   </button>
+                   
+                   <div className={styles.filterBar.divider}></div>
+                   
+                   {/* Clear All Filters Button */}
+                   <button 
+                       onClick={() => setFilters({ filterType: 'ALL', filterQuarterYears: [], filterStatus: 'ALL', hideDescription: false, hideProgress: false, filterInitiativeId: 'ALL' })}
+                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-brand-600 hover:bg-white/60 rounded-md transition-colors"
+                       title="Clear All Filters"
+                   >
+                       <X className="w-3.5 h-3.5"/> 
+                       <span>Clear All</span>
                    </button>
               </div>
           </div>

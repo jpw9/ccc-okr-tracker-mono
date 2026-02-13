@@ -3,6 +3,7 @@ package com.ccc.okrtracker.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,5 +23,6 @@ public class Goal extends BaseEntity {
     private StrategicInitiative initiative;
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL)
+    @BatchSize(size = 50)
     private List<Objective> objectives = new ArrayList<>();
 }

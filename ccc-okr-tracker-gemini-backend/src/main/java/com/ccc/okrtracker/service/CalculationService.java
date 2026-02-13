@@ -34,25 +34,23 @@ public class CalculationService {
 
     @Transactional
     public void recalculateProject(Long projectId) {
-        logger.info("=== RECALCULATE PROJECT START: projectId={} ===", projectId);
+        logger.debug("Recalculate project start: projectId={}", projectId);
         
-        // Synchronize any pending changes to database before clearing cache
-        // This ensures all previous saves are committed before we fetch fresh data
+        // Synchronize any pending changes to database before refreshing
         try {
             entityManager.flush();
         } catch (Exception e) {
-            // If flush fails, log warning but continue - this might happen if entities are in invalid state
             logger.warn("Failed to flush before recalculation, continuing anyway: {}", e.getMessage());
         }
         
-        // Clear persistence context to ensure we fetch fresh data from database
-        // This prevents stale data issues in test environments and long-running transactions
-        entityManager.clear();
-        
-        // Fetch project
+        // Fetch project (benefits from L1 cache or batch fetching)
         Project project = projectRepository.findById(projectId).orElseThrow();
+        
+        // Refresh the entity to get fresh data without clearing the entire persistence context
+        entityManager.refresh(project);
 
         // Force initialization of lazy collections at all levels
+        // With @BatchSize(50), these will batch-load instead of N+1
         Hibernate.initialize(project.getInitiatives());
         
         for (StrategicInitiative init : project.getInitiatives()) {
@@ -68,141 +66,85 @@ public class CalculationService {
             }
         }
         
+        // Calculate progress bottom-up
+        // All entities are managed by Hibernate within this @Transactional method,
+        // so setProgress() will be auto-flushed at commit — no individual save() needed.
         int projTotal = 0;
         int initCount = 0;
 
         for (StrategicInitiative init : project.getInitiatives()) {
-            logger.info("Initiative id={}, isActive={}", init.getId(), init.getIsActive());
             if (!init.getIsActive()) continue;
 
             int initTotal = 0;
             int goalCount = 0;
 
             for (Goal goal : init.getGoals()) {
-                logger.info("  Goal id={}, isActive={}", goal.getId(), goal.getIsActive());
                 if (!goal.getIsActive()) continue;
 
                 int goalTotal = 0;
                 int objCount = 0;
 
                 for (Objective obj : goal.getObjectives()) {
-                    logger.info("    Objective id={}, isActive={}", obj.getId(), obj.getIsActive());
                     if (!obj.getIsActive()) continue;
 
                     int objTotal = 0;
                     int krCount = 0;
 
                     for (KeyResult kr : obj.getKeyResults()) {
-                        logger.info("      KeyResult id={}, isActive={}", kr.getId(), kr.getIsActive());
                         if (!kr.getIsActive()) continue;
 
-                        // KR Logic: Smart calculation based on manual lock flag
-                        // 1. If KR was manually set (manualProgressSet=true), use direct value and ignore action items
-                        // 2. Otherwise, calculate from action items
                         int krProgress = 0;
-                        
                         boolean manuallySet = kr.getManualProgressSet() != null && kr.getManualProgressSet();
                         
-                        logger.info("KR {} calculation: manualProgressSet={}, hasActionItems={}", 
-                                kr.getId(), 
-                                manuallySet, 
-                                !kr.getActionItems().isEmpty());
-                        
                         if (manuallySet) {
-                            // If manually set, use the progress value directly - don't recalculate
-                            // This preserves the user's manual input while allowing rollup to parent entities
                             krProgress = safeProgress(kr.getProgress());
-                            logger.info("KR {} is MANUAL: using progress={}", kr.getId(), krProgress);
                         } else {
-                            // KR was not manually set, calculate from action items
-                            
-                            // Check if action items exist and should be used
-                            long totalAiCount = kr.getActionItems().stream()
-                                    .filter(ai -> ai != null)
-                                    .count();
                             long activeAiCount = kr.getActionItems().stream()
                                     .filter(ai -> ai != null)
                                     .filter(BaseEntity::getIsActive)
                                     .count();
-                            
-                            logger.info("KR {} action items: total={}, active={}", kr.getId(), totalAiCount, activeAiCount);
 
                             if (activeAiCount > 0) {
-                                // Calculate KR progress from average of action items
                                 double aiSum = kr.getActionItems().stream()
                                         .filter(ai -> ai != null)
                                         .filter(BaseEntity::getIsActive)
                                         .mapToInt(ai -> safeProgress(ai.getProgress()))
                                         .sum();
                                 krProgress = (int) Math.min(100, Math.round(aiSum / activeAiCount));
-                                logger.info("KR {} calculated from {} active action items: progress={}", kr.getId(), activeAiCount, krProgress);
-                            } else if (totalAiCount > 0) {
-                                // All action items were deleted - reset progress to 0
+                            } else if (kr.getActionItems().stream().anyMatch(ai -> ai != null)) {
                                 krProgress = 0;
-                                logger.info("KR {} has {} deleted action items, resetting progress to 0", kr.getId(), totalAiCount);
                             } else {
-                                // No action items, use current progress value
                                 krProgress = safeProgress(kr.getProgress());
                             }
                         }
 
                         kr.setProgress(krProgress);
-                        krRepository.save(kr);  
                         objTotal += krProgress; 
                         krCount++;
                     }
 
-                    if (krCount > 0) {
-                        int newObjProgress = Math.round((float) objTotal / krCount);
-                        obj.setProgress(newObjProgress);
-                        objectiveRepository.save(obj);
-                        goalTotal += newObjProgress;
-                        objCount++;
-                    } else {
-                        // No active KRs - set objective progress to 0
-                        obj.setProgress(0);
-                        objectiveRepository.save(obj);
-                        goalTotal += 0;
-                        objCount++;
-                    }
+                    int newObjProgress = (krCount > 0) ? Math.round((float) objTotal / krCount) : 0;
+                    obj.setProgress(newObjProgress);
+                    goalTotal += newObjProgress;
+                    objCount++;
                 }
 
-                if (objCount > 0) {
-                    int newGoalProgress = Math.round((float) goalTotal / objCount);
-                    goal.setProgress(newGoalProgress);
-                    goalRepository.save(goal);
-                    initTotal += newGoalProgress;
-                    goalCount++;
-                } else {
-                    // No active objectives - set goal progress to 0
-                    goal.setProgress(0);
-                    goalRepository.save(goal);
-                    initTotal += 0;
-                    goalCount++;
-                }
+                int newGoalProgress = (objCount > 0) ? Math.round((float) goalTotal / objCount) : 0;
+                goal.setProgress(newGoalProgress);
+                initTotal += newGoalProgress;
+                goalCount++;
             }
 
-            if (goalCount > 0) {
-                int newInitProgress = Math.round((float) initTotal / goalCount);
-                init.setProgress(newInitProgress);
-                initiativeRepository.save(init);
-                projTotal += newInitProgress;
-                initCount++;
-            } else {
-                // No active goals - set initiative progress to 0
-                init.setProgress(0);
-                initiativeRepository.save(init);
-                projTotal += 0;
-                initCount++;
-            }
+            int newInitProgress = (goalCount > 0) ? Math.round((float) initTotal / goalCount) : 0;
+            init.setProgress(newInitProgress);
+            projTotal += newInitProgress;
+            initCount++;
         }
 
         if (initCount > 0) {
-            int newProjProgress = Math.round((float) projTotal / initCount);
-            project.setProgress(newProjProgress);
-            projectRepository.save(project);
+            project.setProgress(Math.round((float) projTotal / initCount));
         }
         
-        logger.info("=== RECALCULATE PROJECT END: projectId={} ===", projectId);
+        logger.debug("Recalculate project end: projectId={}", projectId);
     }
 }

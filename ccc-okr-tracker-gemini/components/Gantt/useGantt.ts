@@ -111,7 +111,7 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
 
       const initiativeTasks: Task[] = [];
 
-      project.initiatives?.forEach(initiative => {
+      project.initiatives?.filter(i => i.isActive).forEach(initiative => {
         const initiativeId = `initiative-${initiative.id}`;
         const initiativeHidden = !expandedIds.has(initiativeId);
 
@@ -122,7 +122,7 @@ export function useGantt(projects: Project[], token: string, isAdmin: boolean) {
 
         const goalTasks: Task[] = [];
 
-        initiative.goals?.forEach(goal => {
+        initiative.goals?.filter(g => g.isActive).forEach(goal => {
           const goalId = `goal-${goal.id}`;
           const goalHidden = !expandedIds.has(goalId);
           const colors = getGoalColor(goal.id);

@@ -3,6 +3,7 @@ package com.ccc.okrtracker.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,7 @@ public class Project extends BaseEntity {
     private Integer progress = 0;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    @BatchSize(size = 50)
     private List<StrategicInitiative> initiatives = new ArrayList<>();
 
     // NOTE: assignedUsers and scopedRoles are managed via JdbcTemplate

@@ -12,7 +12,7 @@ import {
     applyProgressRollup 
 } from '../shared/TreeViewShared';
 
-import { ZoomIn, ZoomOut, EyeOff, Target } from 'lucide-react';
+import { ZoomIn, ZoomOut, EyeOff, Target, X } from 'lucide-react';
 
 
 // --- MAIN VIEW COMPONENT (MyObjectivesView) ---
@@ -357,6 +357,23 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                     >
                         <EyeOff className="w-3.5 h-3.5"/> 
                         <span>Progress</span>
+                    </button>
+                    
+                    <div className={hierarchyStyles.filterBar.divider}></div>
+                    
+                    {/* Clear All Filters Button */}
+                    <button 
+                        onClick={() => {
+                            setFilterQuarterYears([]);
+                            setFilterType('Objective');
+                            setHideDescription(false);
+                            setHideProgress(false);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-brand-600 hover:bg-white/60 rounded-md transition-colors"
+                        title="Clear All Filters"
+                    >
+                        <X className="w-3.5 h-3.5"/> 
+                        <span>Clear All</span>
                     </button>
                 </div>
             </div>

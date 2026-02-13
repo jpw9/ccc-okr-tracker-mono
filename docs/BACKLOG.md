@@ -91,6 +91,33 @@
 
 ---
 
+## Gantt Chart
+**Component:** `components/Gantt/` (to be created)
+**Status:** 🔄 In Progress (Started Feb 12, 2026)
+**Spec:** `docs/features/GANTT_CHART.md`
+
+### Bugs
+- [ ] 
+
+### Enhancements
+- [ ] 
+
+---
+
+## Admin (User Management)
+**Component:** `components/Admin/UserManagement.tsx`
+**Status:** ✅ Recent fixes complete (Feb 12, 2026)
+
+### Bugs
+- [x] 🔴 Create user doesn't save roles and project assignments → Fixed: createUser now processes roleIds and assignedProjectIds
+- [x] 🔴 Deactivate user clears firstName, lastName, login, groupNo → Fixed: updateUser now only updates non-null fields (partial update)
+- [x] 🟠 Deactivated users still appear in User Management table → Fixed: Backend filters inactive users by default, added toggle
+
+### Enhancements
+- [x] 🟡 Add "Show inactive users" toggle with reactivation capability
+
+---
+
 ## Admin (Role Management)
 **Component:** `components/Admin/RoleManagement.tsx`
 **Status:** Not reviewed
@@ -130,6 +157,9 @@
 ### February 2026
 | Date | Screen | Type | Description |
 |------|--------|------|-------------|
+| Feb 12 | User Management | Bug Fix | Fixed createUser to handle roles and project assignments |
+| Feb 12 | User Management | Bug Fix | Fixed updateUser to only update non-null fields (partial update) |
+| Feb 12 | User Management | Enhancement | Added "Show inactive users" toggle and reactivation |
 | Feb 8 | Hierarchy View | Enhancement | Modern compact filter bar with grouped filters, gradient design, improved UX |
 | Feb 8 | My Objectives | Enhancement | Filter bar redesign matching Strategy Map modern design |
 | Feb 6 | Mindmap | Feature | Phase 5 - UI refinements complete |

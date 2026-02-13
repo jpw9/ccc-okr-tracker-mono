@@ -46,11 +46,16 @@ public class UserService {
             return Collections.emptyList();
         }
 
-        // 1. Find the active application user by email
+        // 1. Find the active application user by email, then fallback to login
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
-            System.out.println("DEBUG: User not found in database for email: " + email);
+            // Fallback: try matching by login field (handles preferred_username / sub claims)
+            userOptional = userRepository.findByLogin(email);
+        }
+
+        if (userOptional.isEmpty()) {
+            System.out.println("DEBUG: User not found in database for email/login: " + email);
             return Collections.emptyList();
         }
 
@@ -61,15 +66,32 @@ public class UserService {
 
         User user = userOptional.get();
 
-        // 2. Extract all unique active permissions from all assigned roles
-        Set<String> appPermissions = user.getRoles().stream()
+        // 2. Check if user has System Administrator role - if so, grant all permissions
+        boolean isSystemAdmin = user.getRoles().stream()
                 .filter(Role::getIsActive)
-                .flatMap(role -> role.getPermissions().stream())
-                .collect(Collectors.toSet());
+                .anyMatch(role -> "System Administrator".equals(role.getName()));
 
-        System.out.println("DEBUG: User " + email + " has permissions: " + appPermissions);
+        Set<String> appPermissions;
+        
+        if (isSystemAdmin) {
+            // System Administrator gets all permissions automatically
+            appPermissions = Set.of(
+                "MANAGE_STRATEGY",
+                "VIEW_STRATEGY", 
+                "MANAGE_USERS",
+                "MANAGE_ROLES"
+            );
+            System.out.println("DEBUG: User " + email + " is System Administrator - granted all permissions");
+        } else {
+            // 3. Extract all unique active permissions from all assigned roles
+            appPermissions = user.getRoles().stream()
+                    .filter(Role::getIsActive)
+                    .flatMap(role -> role.getPermissions().stream())
+                    .collect(Collectors.toSet());
+            System.out.println("DEBUG: User " + email + " has permissions: " + appPermissions);
+        }
 
-        // 3. Convert to Spring Security Authorities
+        // 4. Convert to Spring Security Authorities
         return appPermissions.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());

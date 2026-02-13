@@ -51,8 +51,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 
 ## Current Focus
 <!-- Update this when starting work on a new screen -->
-**Status:** Up to date - No active development tasks
-**Last Updated:** Feb 9, 2026
+**Status:** In Progress - Gantt Chart Implementation
+**Last Updated:** Feb 12, 2026
+**Current Task:** Implementing Admin Gantt Chart view (see `docs/features/GANTT_CHART.md`)
 **Backlog:** See `docs/BACKLOG.md` for full list
 
 ## Current State / Known Issues
@@ -62,6 +63,9 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Case-insensitive email lookup: Fixed in UserRepository.java
 - All Tomcat 9 references removed - using Tomcat 10 only
 - Action Item consistency: Progress and isCompleted automatically synced (Feb 8, 2026)
+- User Management: Added inactive user toggle and reactivation (Feb 12, 2026)
+- User Management: Fixed createUser to properly handle roles and project assignments (Feb 12, 2026)
+- Deploy script: -BackendOnly flag now skips frontend build (Feb 12, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->

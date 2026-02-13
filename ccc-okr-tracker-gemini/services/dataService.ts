@@ -158,22 +158,22 @@ export const addEntity = async (parentId: number | null, type: string, data: any
     // Routes the request to the correct parent-child relationship endpoint
     switch (type) {
         case 'Project':
-            endpoint = '/hierarchy/projects';
+            endpoint = '/api/hierarchy/projects';
             break;
         case 'StrategicInitiative':
-            endpoint = `/hierarchy/projects/${parentId}/initiatives`;
+            endpoint = `/api/hierarchy/projects/${parentId}/initiatives`;
             break;
         case 'Goal':
-            endpoint = `/hierarchy/initiatives/${parentId}/goals`;
+            endpoint = `/api/hierarchy/initiatives/${parentId}/goals`;
             break;
         case 'Objective':
-            endpoint = `/hierarchy/goals/${parentId}/objectives`;
+            endpoint = `/api/hierarchy/goals/${parentId}/objectives`;
             break;
         case 'KeyResult':
-            endpoint = `/hierarchy/objectives/${parentId}/key-results`;
+            endpoint = `/api/hierarchy/objectives/${parentId}/key-results`;
             break;
         case 'ActionItem':
-            endpoint = `/hierarchy/key-results/${parentId}/action-items`;
+            endpoint = `/api/hierarchy/key-results/${parentId}/action-items`;
             break;
         default:
             throw new Error(`Unknown entity type for add: ${type}`);

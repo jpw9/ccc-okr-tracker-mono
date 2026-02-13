@@ -13,7 +13,7 @@ import {
 } from '../shared/TreeViewShared';
 import { ConfirmDialog, ConfirmDialogState, CONFIRM_DIALOG_INITIAL } from '../shared/ConfirmDialog';
 
-import { ZoomIn, ZoomOut, EyeOff, Target, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, EyeOff, Target, X, ChevronsDown, ChevronsUp } from 'lucide-react';
 
 
 // --- MAIN VIEW COMPONENT (MyObjectivesView) ---
@@ -243,35 +243,9 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
 
     return (
         <div className={hierarchyStyles.container}>
-             <div className={hierarchyStyles.header.wrapper}>
-                <div>
-                    <h1 className={hierarchyStyles.header.title}>My Assigned Objectives</h1>
-                    <p className={hierarchyStyles.header.subtitle}>Focus on objectives, key results, and action items assigned to you.</p>
-                </div>
-                
-                <div className={hierarchyStyles.header.addButton}>
-                    
-                    {/* Zoom Controls (Simplified: no XLarge) */}
-                    <div className="flex gap-2 items-center mr-4 bg-white/10 rounded-lg p-0.5">
-                        <button 
-                            onClick={() => cycleZoom('out')}
-                            disabled={zoomLevel === 'small'}
-                            className="p-1.5 text-slate-100 disabled:text-slate-500 disabled:hover:bg-transparent hover:text-white hover:bg-brand-500 rounded transition-colors" 
-                            title="Zoom Out"
-                        >
-                            <ZoomOut className="w-4 h-4" />
-                        </button>
-                        <button 
-                            onClick={() => cycleZoom('in')}
-                            disabled={zoomLevel === 'large'}
-                            className="p-1.5 text-slate-100 disabled:text-slate-500 disabled:hover:bg-transparent hover:text-white hover:bg-brand-500 rounded transition-colors" 
-                            title="Zoom In"
-                        >
-                            <ZoomIn className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                </div>
+            <div className="mb-4">
+                <h1 className={hierarchyStyles.header.title}>My Assigned Objectives</h1>
+                <p className={hierarchyStyles.header.subtitle}>Focus on objectives, key results, and action items assigned to you.</p>
             </div>
 
             {/* MODERN COMPACT FILTER BAR */}
@@ -382,6 +356,36 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                         <X className="w-3.5 h-3.5"/> 
                         <span>Clear All</span>
                     </button>
+
+                    {/* Spacer to push view controls right */}
+                    <div className="flex-1" />
+
+                    {/* View Controls Group */}
+                    <div className="inline-flex items-center gap-1 bg-white px-1.5 py-1 rounded-lg border border-slate-200/60 shadow-sm">
+                        <button 
+                            onClick={() => cycleZoom('out')}
+                            disabled={zoomLevel === 'small'}
+                            className="p-1.5 text-slate-500 disabled:text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" 
+                            title="Zoom Out"
+                        >
+                            <ZoomOut className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                            onClick={() => cycleZoom('in')}
+                            disabled={zoomLevel === 'large'}
+                            className="p-1.5 text-slate-500 disabled:text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" 
+                            title="Zoom In"
+                        >
+                            <ZoomIn className="w-3.5 h-3.5" />
+                        </button>
+                        <div className="h-4 w-px bg-slate-200 mx-0.5" />
+                        <button onClick={() => setExpandSignal(Date.now())} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Expand All">
+                            <ChevronsDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setExpandSignal(-Date.now())} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Collapse All">
+                            <ChevronsUp className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

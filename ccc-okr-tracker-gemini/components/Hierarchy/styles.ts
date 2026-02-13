@@ -3,10 +3,10 @@
 export const styles = {
     container: "pb-20 max-w-6xl mx-auto px-4",
     header: {
-        wrapper: "flex flex-col md:flex-row justify-between md:items-end mb-6 border-b border-slate-200 pb-4 gap-4",
+        wrapper: "mb-4",
         title: "text-2xl font-bold text-slate-900 tracking-tight",
         subtitle: "text-slate-500 mt-1 text-sm md:text-base",
-        addButton: "flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 shadow-sm transition-all whitespace-nowrap cursor-pointer select-none"
+        addButton: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-colors"
     },
     filterBar: {
         wrapper: "bg-gradient-to-br from-slate-50 to-white p-3 rounded-xl shadow-sm border border-slate-200/60 mb-6 flex flex-col gap-3",

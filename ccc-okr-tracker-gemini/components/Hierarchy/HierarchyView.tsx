@@ -404,51 +404,20 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
 
     return (
         <div className={styles.container}>
-          <div className={styles.header.wrapper}>
+          <div className="flex items-start justify-between mb-4">
              <div>
                  <h2 className={styles.header.title}>Strategy Map</h2>
                  <p className={styles.header.subtitle}>Define, track, and manage your organization's hierarchy.</p>
              </div>
-             <div className={styles.header.addButton}>
-                
-                {/* Zoom Controls */}
-                <div className="flex gap-2 items-center mr-4 bg-white/10 rounded-lg p-0.5">
-                    <button 
-                        onClick={() => cycleZoom('out')}
-                        disabled={zoomLevel === 'small'}
-                        className="p-1.5 text-slate-100 disabled:text-slate-500 disabled:hover:bg-transparent hover:text-white hover:bg-brand-500 rounded transition-colors" 
-                        title="Zoom Out"
-                    >
-                        <ZoomOut className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={() => cycleZoom('in')}
-                        disabled={zoomLevel === 'xlarge'}
-                        className="p-1.5 text-slate-100 disabled:text-slate-500 disabled:hover:bg-transparent hover:text-white hover:bg-brand-500 rounded transition-colors" 
-                        title="Zoom In"
-                    >
-                        <ZoomIn className="w-4 h-4" />
-                    </button>
-                    <div className="w-px bg-slate-400/30 mx-0.5 h-4"></div>
-                </div>
-
-                {/* Existing: Expand/Collapse Controls */}
-                <div className="flex gap-2 items-center mr-4 bg-white/10 rounded-lg p-0.5">
-                    <button onClick={handleExpandAll} className="p-1.5 text-slate-100 hover:text-white hover:bg-brand-500 rounded transition-colors" title="Expand All">
-                        <ChevronsDown className="w-4 h-4" />
-                    </button>
-                    <div className="w-px bg-slate-400/30 mx-0.5 h-4"></div>
-                    <button onClick={handleCollapseAll} className="p-1.5 text-slate-100 hover:text-white hover:bg-brand-500 rounded transition-colors" title="Collapse All">
-                        <ChevronsUp className="w-4 h-4" />
-                    </button>
-                 </div>
-                 {isAdmin && (
-                     <button onClick={() => openAddDialog(null, 'Project')} className="flex items-center font-semibold">
-                         <Plus className="w-4 h-4 mr-2" />
-                         New Project
-                     </button>
-                 )}
-             </div>
+             {isAdmin && (
+                 <button 
+                     onClick={() => openAddDialog(null, 'Project')} 
+                     className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-colors"
+                 >
+                     <Plus className="w-4 h-4" />
+                     New Project
+                 </button>
+             )}
           </div>
           
           {/* MODERN COMPACT FILTER BAR */}
@@ -588,6 +557,36 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
                        <X className="w-3.5 h-3.5"/> 
                        <span>Clear All</span>
                    </button>
+
+                   {/* Spacer to push view controls right */}
+                   <div className="flex-1" />
+
+                   {/* View Controls Group */}
+                   <div className="inline-flex items-center gap-1 bg-white px-1.5 py-1 rounded-lg border border-slate-200/60 shadow-sm">
+                       <button 
+                           onClick={() => cycleZoom('out')}
+                           disabled={zoomLevel === 'small'}
+                           className="p-1.5 text-slate-500 disabled:text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" 
+                           title="Zoom Out"
+                       >
+                           <ZoomOut className="w-3.5 h-3.5" />
+                       </button>
+                       <button 
+                           onClick={() => cycleZoom('in')}
+                           disabled={zoomLevel === 'xlarge'}
+                           className="p-1.5 text-slate-500 disabled:text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" 
+                           title="Zoom In"
+                       >
+                           <ZoomIn className="w-3.5 h-3.5" />
+                       </button>
+                       <div className="h-4 w-px bg-slate-200 mx-0.5" />
+                       <button onClick={handleExpandAll} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Expand All">
+                           <ChevronsDown className="w-3.5 h-3.5" />
+                       </button>
+                       <button onClick={handleCollapseAll} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Collapse All">
+                           <ChevronsUp className="w-3.5 h-3.5" />
+                       </button>
+                   </div>
               </div>
           </div>
 

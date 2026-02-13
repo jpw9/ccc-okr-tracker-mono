@@ -4,6 +4,7 @@ import { Role, Permission, Project } from '../../types';
 import * as DataService from '../../services/dataService';
 import { Plus, Edit2, Trash2, X, Shield, Lock } from 'lucide-react';
 import { useAuth } from '../../KeycloakProvider';
+import { ConfirmDialog, ConfirmDialogState, CONFIRM_DIALOG_INITIAL } from '../shared/ConfirmDialog';
 
 const AVAILABLE_PERMISSIONS: { key: Permission, label: string }[] = [
     { key: 'VIEW_DASHBOARD', label: 'View Dashboard' },
@@ -32,6 +33,7 @@ export const RoleManagement: React.FC<RoleManagementProps> = ({ searchQuery, tok
     const [projects, setProjects] = useState<Project[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<Partial<RoleForEdit>>({});
+    const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(CONFIRM_DIALOG_INITIAL);
 
     const loadData = useCallback(async () => {
         if (!token) return;
@@ -119,20 +121,25 @@ export const RoleManagement: React.FC<RoleManagementProps> = ({ searchQuery, tok
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this role?')) {
-            try {
-                await DataService.deleteRole(id, token); 
-                
-                // CRITICAL: Immediately refresh both the roles list AND the current user's permissions
-                await loadData();
-                await refreshAppUser();
-
-            } catch (error: any) {
-                console.error("Delete Role Error:", error);
-                alert(`Error deleting role: ${error.message}`);
-            }
-        }
+    const handleDelete = (id: number) => {
+        const role = roles.find(r => r.id === id);
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Delete Role',
+            message: `Are you sure you want to delete the role "${role?.name || ''}"? This action cannot be undone.`,
+            confirmLabel: 'Delete',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    await DataService.deleteRole(id, token); 
+                    await loadData();
+                    await refreshAppUser();
+                } catch (error: any) {
+                    console.error("Delete Role Error:", error);
+                    alert(`Error deleting role: ${error.message}`);
+                }
+            },
+        });
     };
 
     const togglePermission = (perm: Permission) => {
@@ -332,6 +339,11 @@ export const RoleManagement: React.FC<RoleManagementProps> = ({ searchQuery, tok
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog 
+                state={confirmDialog}
+                onClose={() => setConfirmDialog(CONFIRM_DIALOG_INITIAL)}
+            />
         </div>
     );
 };

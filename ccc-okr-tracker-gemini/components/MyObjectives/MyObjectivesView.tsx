@@ -11,6 +11,7 @@ import {
     getNodeConfig,
     applyProgressRollup 
 } from '../shared/TreeViewShared';
+import { ConfirmDialog, ConfirmDialogState, CONFIRM_DIALOG_INITIAL } from '../shared/ConfirmDialog';
 
 import { ZoomIn, ZoomOut, EyeOff, Target, X } from 'lucide-react';
 
@@ -58,6 +59,8 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
         nodeType: 'Objective',
         parentId: null
     });
+
+    const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(CONFIRM_DIALOG_INITIAL);
 
     const isSearchActive = !!searchQuery;
     
@@ -141,7 +144,7 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
         }
     };
 
-    const handleDelete = async (item: any) => {
+    const handleDelete = (item: any) => {
         // Helper function to count active children
         const getChildrenInfo = (item: any) => {
             let childCount = 0;
@@ -165,25 +168,29 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
         };
         
         const { childCount, childType } = getChildrenInfo(item);
+        const formattedType = formatNodeType(item.type);
         
-        let confirmMessage = `Are you sure you want to archive "${item.title}"? This moves it to the Recycle Bin.`;
-        
-        if (childCount > 0) {
-            const plural = childCount > 1 ? 's' : '';
-            confirmMessage = `⚠️ WARNING: "${item.title}" has ${childCount} active ${childType}${plural}.\n\n` +
-                           `Deleting this ${item.type} will also archive all its children.\n\n` +
-                           `Are you sure you want to continue?`;
-        }
-        
-        if (window.confirm(confirmMessage)) {
-            try {
-                await DataService.updateEntity(item.type, item.id, { isActive: false }, token);
-                refreshData();
-            } catch (error: any) {
-                console.error("Delete Error:", error);
-                alert(`Failed to delete item: ${error.message}`);
-            }
-        }
+        const warning = childCount > 0
+            ? `"${item.title}" has ${childCount} active ${childType}${childCount > 1 ? 's' : ''}. Archiving will also archive all its children.`
+            : undefined;
+
+        setConfirmDialog({
+            isOpen: true,
+            title: `Archive ${formattedType}`,
+            message: `Are you sure you want to archive "${item.title}"? This moves it to the Recycle Bin.`,
+            warning,
+            confirmLabel: 'Archive',
+            variant: childCount > 0 ? 'warning' : 'danger',
+            onConfirm: async () => {
+                try {
+                    await DataService.updateEntity(item.type, item.id, { isActive: false }, token);
+                    refreshData();
+                } catch (error: any) {
+                    console.error("Delete Error:", error);
+                    alert(`Failed to delete item: ${error.message}`);
+                }
+            },
+        });
     };
 
     const handleComplete = async (item: any) => {
@@ -427,6 +434,11 @@ export const MyObjectivesView: React.FC<MyObjectivesViewProps> = ({ projects, cu
                 allUsers={allUsers}
                 onClose={() => setDialogState(prev => ({ ...prev, isOpen: false }))}
                 onSave={handleSave}
+            />
+
+            <ConfirmDialog 
+                state={confirmDialog}
+                onClose={() => setConfirmDialog(CONFIRM_DIALOG_INITIAL)}
             />
         </div>
     );

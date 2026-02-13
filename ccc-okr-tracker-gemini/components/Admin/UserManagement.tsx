@@ -3,6 +3,7 @@ import { styles } from './styles';
 import { User, Role, Project } from '../../types';
 import * as DataService from '../../services/dataService';
 import { Plus, X, User as UserIcon } from 'lucide-react';
+import { ConfirmDialog, ConfirmDialogState, CONFIRM_DIALOG_INITIAL } from '../shared/ConfirmDialog';
 
 interface UserManagementProps {
     searchQuery: string;
@@ -29,6 +30,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
     const [isModalOpen, setIsModalOpen] = useState(false);
     // MODIFIED: Use the UserForEdit type
     const [editingUser, setEditingUser] = useState<Partial<UserForEdit>>({}); 
+    const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(CONFIRM_DIALOG_INITIAL);
 
     // MODIFIED: loadData uses useCallback and token dependency
     const loadData = useCallback(async () => {
@@ -122,28 +124,44 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to deactivate this user?')) {
-            try {
-                await DataService.deleteUser(id, token); // Pass token
-                loadData();
-            } catch (error: any) {
-                console.error("Delete User Error:", error);
-                alert(`Error deactivating user: ${error.message}`);
-            }
-        }
+    const handleDelete = (id: number) => {
+        const user = users.find(u => u.id === id);
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Deactivate User',
+            message: `Are you sure you want to deactivate "${user?.firstName || ''} ${user?.lastName || ''}"? They will no longer be able to log in.`,
+            confirmLabel: 'Deactivate',
+            variant: 'warning',
+            onConfirm: async () => {
+                try {
+                    await DataService.deleteUser(id, token);
+                    loadData();
+                } catch (error: any) {
+                    console.error("Delete User Error:", error);
+                    alert(`Error deactivating user: ${error.message}`);
+                }
+            },
+        });
     };
 
-    const handleReactivate = async (id: number) => {
-        if (window.confirm('Are you sure you want to reactivate this user?')) {
-            try {
-                await DataService.updateUser(id, { isActive: true }, token);
-                loadData();
-            } catch (error: any) {
-                console.error("Reactivate User Error:", error);
-                alert(`Error reactivating user: ${error.message}`);
-            }
-        }
+    const handleReactivate = (id: number) => {
+        const user = users.find(u => u.id === id);
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Reactivate User',
+            message: `Are you sure you want to reactivate "${user?.firstName || ''} ${user?.lastName || ''}"? They will regain access to the system.`,
+            confirmLabel: 'Reactivate',
+            variant: 'info',
+            onConfirm: async () => {
+                try {
+                    await DataService.updateUser(id, { isActive: true }, token);
+                    loadData();
+                } catch (error: any) {
+                    console.error("Reactivate User Error:", error);
+                    alert(`Error reactivating user: ${error.message}`);
+                }
+            },
+        });
     };
 
     const handleRoleChange = (roleId: number) => {
@@ -378,6 +396,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ searchQuery, tok
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog 
+                state={confirmDialog}
+                onClose={() => setConfirmDialog(CONFIRM_DIALOG_INITIAL)}
+            />
         </div>
     );
 };

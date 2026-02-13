@@ -247,7 +247,13 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
         ? `Add New ${formattedNodeType}` 
         : `Edit ${formattedNodeType}`;
     
-    const showProgressInput = ['Project', 'StrategicInitiative', 'Goal', 'Objective', 'KeyResult', 'ActionItem'].includes(nodeType);
+    // Progress rules:
+    // - Project, StrategicInitiative, Goal: calculated from children → hide in ADD, read-only in EDIT
+    // - Objective, KeyResult, ActionItem: user-editable in EDIT, hidden in ADD
+    const isCalculatedType = ['Project', 'StrategicInitiative', 'Goal'].includes(nodeType);
+    const isEditableProgressType = ['Objective', 'KeyResult', 'ActionItem'].includes(nodeType);
+    const showProgressInput = mode === 'EDIT' && (isCalculatedType || isEditableProgressType);
+    const isProgressReadOnly = isCalculatedType; // Calculated types are always read-only
 
     return (
         <div className={hierarchyStyles.dialog.overlay}>
@@ -283,16 +289,23 @@ export const ItemDialog: React.FC<ItemDialogProps> = ({
                         
                         {showProgressInput && (
                             <div>
-                                <label className={hierarchyStyles.dialog.label}>Progress (%)</label>
+                                <label className={hierarchyStyles.dialog.label}>
+                                    Progress (%)
+                                    {isProgressReadOnly && (
+                                        <span className="ml-2 text-xs text-slate-400 font-normal">— auto-calculated from children</span>
+                                    )}
+                                </label>
                                 <input 
                                     type="number" 
                                     name="progress" 
                                     value={formData.progress ?? ''} 
                                     onChange={handleChange} 
-                                    className={hierarchyStyles.dialog.input} 
+                                    className={`${hierarchyStyles.dialog.input} ${isProgressReadOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`} 
                                     min="0"
                                     max="100"
                                     placeholder="0 to 100"
+                                    disabled={isProgressReadOnly}
+                                    readOnly={isProgressReadOnly}
                                 />
                             </div>
                         )}

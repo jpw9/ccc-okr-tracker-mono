@@ -141,6 +141,8 @@
 
 ### Enhancements
 - [x] 🟠 System Administrator auto-permissions → System Administrator role now automatically receives all permissions (MANAGE_STRATEGY, VIEW_STRATEGY, MANAGE_USERS, MANAGE_ROLES) regardless of role_permissions table entries (Feb 13, 2026)
+- [x] 🟡 Styled Confirm Dialog → All `window.confirm()` replaced with styled `ConfirmDialog` component (danger/warning/info variants) across Hierarchy, My Objectives, Role Management, User Management (Feb 13, 2026)
+- [x] 🟡 Modal consistency → Progress field hidden in ADD mode, read-only for Project/Initiative/Goal in EDIT mode (auto-calculated from children) (Feb 13, 2026)
 
 ---
 
@@ -161,6 +163,8 @@
 | Date | Screen | Type | Description |
 |------|--------|------|-------------|
 | Feb 13 | Settings | Feature | User Preferences: default project, default landing page, sidebar state — per-user DB storage, applied on login |
+| Feb 13 | Global | Enhancement | Styled ConfirmDialog replacing all window.confirm() — danger/warning/info variants with consistent app styling |
+| Feb 13 | Global | Enhancement | Modal consistency: Progress hidden in ADD mode, read-only for Project/Initiative/Goal in EDIT mode |
 | Feb 13 | Gantt Chart | Enhancement | Removed local project filter; Gantt & Mindmap now respect global header project filter |
 | Feb 13 | Gantt Chart | Feature | Fully implemented interactive Gantt Chart with drag-and-drop, filters, objective modal, custom task list |
 | Feb 13 | Global | Bug Fix | Fixed addEntity endpoints missing `/api` prefix causing 403 on all create operations |

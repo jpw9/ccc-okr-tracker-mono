@@ -21,6 +21,7 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - Components go in `components/` with folder per feature (e.g., `Dashboard/`, `Hierarchy/`)
 - Each component folder has: `index.tsx`, `*View.tsx`, `use*.ts` (hook), `styles.ts`
 - Use existing patterns from `components/shared/TreeViewShared.tsx`
+- Use `ConfirmDialog` from `components/shared/ConfirmDialog.tsx` for all destructive action confirmations (never `window.confirm()`)
 - API calls go through `services/dataService.ts` (single entry point)
 - Types are defined in `types.ts` at root
 
@@ -81,6 +82,8 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
 - User Preferences: Per-user settings stored in DB — default project, default landing page, sidebar collapsed state (Feb 13, 2026)
 - Gantt Chart: Removed local project filter — now uses global header filter only; keeps Year/Quarter filters (Feb 13, 2026)
 - Mindmap & Gantt: Now respect global project filter (filteredProjects instead of unfiltered projects) (Feb 13, 2026)
+- Confirm Dialogs: All `window.confirm()` replaced with styled `ConfirmDialog` component across Hierarchy, My Objectives, Role Management, User Management (Feb 13, 2026)
+- Modal consistency: Progress field hidden in ADD mode for all types; disabled (read-only) in EDIT mode for Project, Initiative, Goal (auto-calculated from children) (Feb 13, 2026)
 
 ## Completed Features
 <!-- Completed features with reference documentation -->
@@ -127,6 +130,19 @@ Progress rolls up from bottom to top automatically via `CalculationService.java`
   - **Sidebar Default State** — expanded or collapsed on login
 - **Data flow:** `App.tsx` fetches preferences in parallel with projects on login → applies once after initial load → `SettingsView` saves via PUT and notifies parent via `onPreferencesChanged` callback
 - **Gantt Chart fix:** Removed redundant local project filter; Gantt and Mindmap now use `filteredProjects` from global header filter
+
+### Styled Confirm Dialog (Completed: Feb 13, 2026)
+- **Component:** `components/shared/ConfirmDialog.tsx`
+- **Description:** Replaced all native `window.confirm()` calls with a styled modal dialog matching the app's design language
+- **Variants:** `danger` (red/trash icon), `warning` (amber/alert icon), `info` (brand blue/refresh icon)
+- **Features:** Optional warning callout for cascading operations, Escape to close, click-outside to close, body scroll lock
+- **Screens updated:** Hierarchy (archive items), My Objectives (archive items), Role Management (delete role), User Management (deactivate/reactivate user)
+- **Exports:** `ConfirmDialog` component, `ConfirmDialogState` interface, `CONFIRM_DIALOG_INITIAL` constant
+
+### Modal Consistency Fix (Completed: Feb 13, 2026)
+- **Component:** `components/shared/TreeViewShared.tsx` (ItemDialog)
+- **Description:** Progress field behavior made consistent across entity types
+- **Rules:** Progress hidden in ADD mode for all types; in EDIT mode: read-only with hint for Project/Initiative/Goal (auto-calculated), editable for Objective/KeyResult/ActionItem
 
 ## Features in Progress
 <!-- Reference feature specs when implementing -->

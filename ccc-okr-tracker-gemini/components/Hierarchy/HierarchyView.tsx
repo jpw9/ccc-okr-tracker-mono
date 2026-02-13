@@ -11,6 +11,7 @@ import {
     applyProgressRollup,
     useTreeNodeState 
 } from '../shared/TreeViewShared';
+import { ConfirmDialog, ConfirmDialogState, CONFIRM_DIALOG_INITIAL } from '../shared/ConfirmDialog';
 import { ChevronsUp, ChevronsDown, Plus, ZoomIn, ZoomOut, EyeOff, Layers, X } from 'lucide-react';
 
 // --- TYPE DEFINITIONS FOR FILTERING ---
@@ -260,6 +261,8 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
         parentId: null
     });
 
+    const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(CONFIRM_DIALOG_INITIAL);
+
     const handleFilterChange = (name: keyof FilterState, value: string | boolean | number) => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };
@@ -323,7 +326,7 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
         }
     };
 
-    const handleDelete = async (item: any) => {
+    const handleDelete = (item: any) => {
         // Helper function to count active children
         const getChildrenInfo = (item: any) => {
             let childCount = 0;
@@ -359,26 +362,29 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
         };
         
         const { childCount, childType } = getChildrenInfo(item);
+        const formattedType = formatNodeType(item.type);
         
-        let confirmMessage = `Are you sure you want to archive "${item.title}"? This moves it to the Recycle Bin.`;
-        
-        if (childCount > 0) {
-            const plural = childCount > 1 ? 's' : '';
-            confirmMessage = `⚠️ WARNING: "${item.title}" has ${childCount} active ${childType}${plural}.\n\n` +
-                           `Deleting this ${item.type} will also archive all its children.\n\n` +
-                           `Are you sure you want to continue?`;
-        }
-        
-        if (window.confirm(confirmMessage)) {
-            try {
-                // MODIFIED: Pass token to updateEntity
-                await DataService.updateEntity(item.type, item.id, { isActive: false }, token);
-                refreshData();
-            } catch (error: any) {
-                console.error("Delete Error:", error);
-                alert(`Failed to delete item: ${error.message}`);
-            }
-        }
+        const warning = childCount > 0
+            ? `"${item.title}" has ${childCount} active ${childType}${childCount > 1 ? 's' : ''}. Archiving will also archive all its children.`
+            : undefined;
+
+        setConfirmDialog({
+            isOpen: true,
+            title: `Archive ${formattedType}`,
+            message: `Are you sure you want to archive "${item.title}"? This moves it to the Recycle Bin.`,
+            warning,
+            confirmLabel: 'Archive',
+            variant: childCount > 0 ? 'warning' : 'danger',
+            onConfirm: async () => {
+                try {
+                    await DataService.updateEntity(item.type, item.id, { isActive: false }, token);
+                    refreshData();
+                } catch (error: any) {
+                    console.error("Delete Error:", error);
+                    alert(`Failed to delete item: ${error.message}`);
+                }
+            },
+        });
     };
 
     const handleComplete = async (item: any) => {
@@ -628,9 +634,14 @@ export const HierarchyView: React.FC<HierarchyManagerProps> = ({ projects, refre
             mode={dialogState.mode}
             nodeType={dialogState.nodeType}
             initialData={dialogState.item}
-            allUsers={allUsers} // PROP: Pass user list to dialog
+            allUsers={allUsers}
             onClose={() => setDialogState(prev => ({ ...prev, isOpen: false }))}
             onSave={handleSave}
+          />
+
+          <ConfirmDialog 
+            state={confirmDialog}
+            onClose={() => setConfirmDialog(CONFIRM_DIALOG_INITIAL)}
           />
         </div>
     );
